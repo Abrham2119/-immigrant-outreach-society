@@ -1,0 +1,24 @@
+import RegistrationForm from "@/components/features/Registration/RegistrationForm";
+import { Suspense } from "react";
+import { ToastContainer } from "react-toastify";
+
+export default function Register() {
+  return (
+    <>
+      <ToastContainer
+        position="top-right"
+        autoClose={6000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
+      <Suspense>
+        <RegistrationForm />  
+      </Suspense>
+    </>
+  );
+}
