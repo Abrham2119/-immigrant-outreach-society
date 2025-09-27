@@ -17,10 +17,6 @@ interface AppointmentBookingProps {
   personnelId: string;
 }
 
-interface AppointmentPageProps {
- 
-}
-
 const AppointmentBooking: React.FC<AppointmentBookingProps> = ({
   onBookingSuccess,
   clientId, 

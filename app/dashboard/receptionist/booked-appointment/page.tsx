@@ -1,5 +1,9 @@
-import AppointmentsPage from "./AppointmentsPage";
+import React from 'react'
 
-export default function Appointments() {
-  return <AppointmentsPage />;
+const page = () => {
+  return (
+    <div>page</div>
+  )
 }
+
+export default page

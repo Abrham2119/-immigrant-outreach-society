@@ -14,4 +14,5 @@ export type InputFieldProps = {
   min?: string | number;
   onClear?: () => void;
   readOnly?: boolean;
+    className?: string;  
 };

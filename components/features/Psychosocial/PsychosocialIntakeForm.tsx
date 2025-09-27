@@ -5,8 +5,7 @@ import { useSubmitPsychosocialIntake } from "@/application/hooks/useSubmitPsycho
 import { Button } from "@/components/ui/Button/Button";
 import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
-import RadioGroup from "@/components/ui/RadioGroup/RadioGroup";
-import { PsychosocialIntakeForm } from "@/domain/entities/psychosocialIntake";
+import { PsychosocialIntakeFormPayload } from "@/domain/entities/psychosocialIntake";
 import {
   psychosocialIntakeSchema,
   PsychosocialIntakeValues,
@@ -96,7 +95,7 @@ export default function PsychosocialIntakeForm() {
   });
 
   const onSubmit: SubmitHandler<PsychosocialIntakeValues> = (data) => {
-    const payload: PsychosocialIntakeForm = {
+    const payload: PsychosocialIntakeFormPayload = {
       client: "68d6cf4803c61caa9ab44210",
       personnel: session?.user?.id ?? "",
       service:  session?.user?.role ?? "",

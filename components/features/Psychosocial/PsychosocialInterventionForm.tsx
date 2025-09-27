@@ -5,7 +5,7 @@ import { useSubmitPsychosocialForm } from "@/application/hooks/useSubmitPsychoso
 import { Button } from "@/components/ui/Button/Button";
 import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
-import { PsychosocialInterventionForm } from "@/domain/entities/psychosocialIntervention";
+import { PsychosocialInterventionFormPayload } from "@/domain/entities/psychosocialIntervention";
 import {
   psychosocialFormSchema,
   PsychosocialFormValues,
@@ -68,7 +68,7 @@ export default function PsychosocialInterventionForm() {
   });
 
   const onSubmit: SubmitHandler<PsychosocialFormValues> = (data) => {
-    const payload: PsychosocialInterventionForm = {
+    const payload: PsychosocialInterventionFormPayload  = {
       client: "68d6cf4803c61caa9ab44210",
       personnel: session?.user?.id ?? "",
       service:  session?.user?.role ?? "",

@@ -42,6 +42,8 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
   
   const { data: appointments = [], isLoading, error } = usePersonnelAppointments(selectedStatus === 'all' ? 'booked' : selectedStatus);
 
+  console.log(usePersonnelAppointments)
+
   // Filter appointments if 'all' is selected
   const filteredAppointments = selectedStatus === 'all' 
     ? appointments 
