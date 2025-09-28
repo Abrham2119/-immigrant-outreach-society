@@ -1,10 +1,9 @@
 "use client";
 import React from "react";
-import { usePersonnelAppointmentManagement } from '@/domain/use-cases/personnelAppointment';
-import { Appointment } from '@/domain/entities/appointment';
+import { AppointmentResponse } from '@/domain/entities/appointmentPersonnel';
 
 interface PersonnelAppointmentDetailsProps {
-  id: string;
+  appointment: AppointmentResponse;
 }
 
 const statusColors = {
@@ -16,13 +15,7 @@ const statusColors = {
   with_personnel: "bg-indigo-100 text-indigo-800",
 };
 
-export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsProps> = ({ id }) => {
-  const { usePersonnelAppointments } = usePersonnelAppointmentManagement();
-  const { data: appointments = [] } = usePersonnelAppointments('all');
-  
-  // Find the specific appointment from the list
-  const appointment = appointments.find(appt => appt._id === id);
-
+export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsProps> = ({ appointment }) => {
   if (!appointment) {
     return (
       <div className="w-full max-w-4xl p-6">
@@ -69,7 +62,7 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
           <div>
             <p className="text-sm text-gray-600">Contact Information</p>
             <p className="text-gray-800 font-medium">{appointment.client.email}</p>
-            <p className="text-gray-600 text-sm">{appointment.client.mobile}</p>
+            <p className="text-gray-600 text-sm">+{appointment.client.mobile}</p>
           </div>
           
           <div>

@@ -7,11 +7,7 @@ export default function AppointmentsPage() {
   const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>('booked');
 
   return (
-    <div>
-      <h2 className="text-2xl text-[#555555] font-semibold mb-2">
-        My Appointments
-      </h2>
-
+    <div>    
       <PersonnelAppointmentsPage 
         selectedStatus={selectedStatus}
         onStatusChange={setSelectedStatus}

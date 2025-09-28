@@ -1,87 +1,91 @@
 "use client";
-import { AppointmentResponse, AppointmentStatus } from '@/domain/entities/appointmentPersonnel';
 import { usePersonnelAppointmentManagement } from '@/application/hooks/usePersonnelAppointments';
-import { formatDateToDDMMYYYYHHMM } from '@/lib/utils/formatDateToDDMMYYYY';
-import { Calendar, Clock, Eye, Filter, MapPin, User } from 'lucide-react';
+import { AppointmentResponse, AppointmentStatus } from '@/domain/entities/appointmentPersonnel';
+import { Eye, User, FileText } from 'lucide-react';
 import { useState } from 'react';
-import ModalComponent from '@/components/ui/modal/Modal';
+import { useRouter } from 'next/navigation';
+import ModalComponent from '../ui/modal/Modal';
 import { PersonnelAppointmentDetails } from './PersonnelAppointmentDetails';
 
-// Status options for filtering
-const statusOptions: { label: string; value: AppointmentStatus }[] = [
-  { label: 'All Appointments', value: 'all' },
-  { label: 'Booked', value: 'booked' },
-  { label: 'Arrived', value: 'arrived' },
-  { label: 'With Personnel', value: 'with_personnel' },
-  { label: 'Completed', value: 'completed' },
-  { label: 'Cancelled', value: 'cancelled' },
-  { label: 'No Show', value: 'no-show' },
-];
-
 const statusColors = {
-  booked: "bg-blue-100 text-blue-800 border border-blue-200",
-  completed: "bg-green-100 text-green-800 border border-green-200",
-  cancelled: "bg-red-100 text-red-800 border border-red-200",
-  'no-show': "bg-orange-100 text-orange-800 border border-orange-200",
-  arrived: "bg-purple-100 text-purple-800 border border-purple-200",
-  with_personnel: "bg-indigo-100 text-indigo-800 border border-indigo-200",
+  booked: "bg-blue-100 text-blue-800",
+  completed: "bg-green-100 text-green-800",
+  cancelled: "bg-red-100 text-red-800",
+  'no-show': "bg-orange-100 text-orange-800",
+  arrived: "bg-purple-100 text-purple-800",
+  with_personnel: "bg-indigo-100 text-indigo-800",
 };
 
-interface AppointmentsListProps {
+interface PersonnelAppointmentsPageProps {
   selectedStatus?: AppointmentStatus;
   onStatusChange?: (status: AppointmentStatus) => void;
-  onAppointmentSelect?: (appointment: AppointmentResponse) => void;
 }
 
-export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ 
+// Assessment form options with slugs for routing
+const assessmentForms = [
+  { id: 'mental-health', title: 'Mental Health Assessment', slug: 'mental-health' },
+  { id: 'physical-health', title: 'Physical Health Assessment', slug: 'physical-health' },
+  { id: 'psychosocial', title: 'Psychosocial Assessment', slug: 'psychosocial' },
+  { id: 'intake', title: 'Intake Assessment', slug: 'intake' },
+  { id: 'risk', title: 'Risk Assessment', slug: 'risk' },
+  { id: 'progress', title: 'Progress Assessment', slug: 'progress' },
+  { id: 'discharge', title: 'Discharge Assessment', slug: 'discharge' },
+  { id: 'psychosocial-intake', title: 'Psychosocial Intake Assessment', slug: 'psychosocial-intake' },
+  { id: 'wellness-check', title: 'Wellness Check Assessment', slug: 'wellness-check' },
+  { id: 'crisis-evaluation', title: 'Crisis Evaluation', slug: 'crisis-evaluation' },
+];
+
+export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps> = ({ 
   selectedStatus: externalStatus, 
-  onStatusChange,
-  onAppointmentSelect 
+  onStatusChange 
 }) => {
-  const [internalStatus, setInternalStatus] = useState<AppointmentStatus>('booked');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentResponse | null>(null);
+  const [selectedAppointmentForAssessment, setSelectedAppointmentForAssessment] = useState<AppointmentResponse | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
   const [remark, setRemark] = useState<string>('');
+  const router = useRouter();
 
   const { personnelId, usePersonnelAppointments, useUpdateAppointmentStatus } = usePersonnelAppointmentManagement();
   
-  // Use external status if provided, otherwise use internal state
-  const selectedStatus = externalStatus || internalStatus;
-  
   const { data: appointmentsData, isLoading, error } = usePersonnelAppointments({
     personnelId: personnelId!,
-    status: selectedStatus === 'all' ? 'booked' : selectedStatus
+    status: 'booked'
   });
   
   const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
   const appointments = appointmentsData?.data || [];
-  const totalAppointments = appointmentsData?.total || 0;
-
-  // Filter appointments if 'all' is selected
-  const filteredAppointments = selectedStatus === 'all' 
-    ? appointments 
-    : appointments.filter(apt => apt.status === selectedStatus);
-
-  const handleStatusChange = (value: AppointmentStatus) => {
-    if (onStatusChange) {
-      onStatusChange(value);
-    } else {
-      setInternalStatus(value);
-    }
-  };
 
   const openModal = (appointment: AppointmentResponse) => {
     setSelectedAppointment(appointment);
     setIsModalOpen(true);
-    onAppointmentSelect?.(appointment);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedAppointment(null);
     setRemark('');
+  };
+
+  const openAssessmentModal = (appointment: AppointmentResponse) => {
+    setSelectedAppointmentForAssessment(appointment);
+    setIsAssessmentModalOpen(true);
+  };
+
+  const closeAssessmentModal = () => {
+    setIsAssessmentModalOpen(false);
+    setSelectedAppointmentForAssessment(null);
+  };
+
+  const handleFormSelect = (formSlug: string) => {
+    if (selectedAppointmentForAssessment) {
+      // Navigate to the form page in the Wellness dashboard with the appointment ID and client ID
+      const formPath = `/dashboard/personnel/Wellness//assessment/${formSlug}`;
+      router.push(formPath);
+    }
+    closeAssessmentModal();
   };
 
   const handleStatusUpdate = async (appointmentId: string, newStatus: string) => {
@@ -120,61 +124,33 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({
     return `${displayHour}:${minutes} ${period}`;
   };
 
-  // Get today's appointments count
-  const getTodayAppointmentsCount = () => {
-    const today = new Date().toDateString();
-    return appointments.filter(a => new Date(a.date).toDateString() === today).length;
-  };
-
-  // Get completed appointments count
-  const getCompletedAppointmentsCount = () => {
-    return appointments.filter(a => a.status === 'completed').length;
-  };
-
-  // Get active appointments count
-  const getActiveAppointmentsCount = () => {
-    return appointments.filter(a => a.status === 'with_personnel').length;
-  };
-
   // Status dropdown component for each row
   const StatusDropdown = ({ appointment }: { appointment: AppointmentResponse }) => (
-    <div className="flex flex-col gap-2 min-w-[120px]">
-      <select
-        value={appointment.status}
-        onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
-        disabled={statusUpdateLoading === appointment._id}
-        className={`px-2 py-1 rounded text-xs font-medium border outline-none cursor-pointer w-full ${
-          statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800 border-gray-300"
-        } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
-      >
-        <option value="booked">Booked</option>
-        <option value="arrived">Arrived</option>
-        <option value="with_personnel">With Personnel</option>
-        <option value="completed">Completed</option>
-        <option value="cancelled">Cancelled</option>
-        <option value="no-show">No Show</option>
-      </select>
-      
-      {/* Remark input for specific statuses */}
-      {(appointment.status === 'completed' || appointment.status === 'cancelled' || appointment.status === 'no-show') && (
-        <input
-          type="text"
-          placeholder="Add remark..."
-          value={remark}
-          onChange={(e) => setRemark(e.target.value)}
-          className="px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:border-blue-500 w-full"
-          maxLength={100}
-        />
-      )}
-    </div>
+    <select
+      value={appointment.status}
+      onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
+      disabled={statusUpdateLoading === appointment._id}
+      className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${
+        statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+      } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
+    >
+      <option value="booked">Booked</option>
+      <option value="arrived">Arrived</option>
+      <option value="with_personnel">With Personnel</option>
+      <option value="completed">Completed</option>
+      <option value="cancelled">Cancelled</option>
+      <option value="no-show">No Show</option>
+    </select>
   );
 
   if (!personnelId) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-        <div className="text-yellow-600">
-          <User className="h-12 w-12 mx-auto mb-4" />
-          <p className="text-lg font-medium">Please log in as personnel to view appointments</p>
+      <div className="space-y-6">
+        <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
+          <div className="text-center py-8 text-yellow-600">
+            <User className="h-12 w-12 mx-auto mb-4" />
+            <p className="text-lg font-medium">Please log in as personnel to view appointments</p>
+          </div>
         </div>
       </div>
     );
@@ -182,10 +158,11 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-        <div className="text-red-600">
-          <p className="text-lg font-medium">Error loading appointments</p>
-          <p className="text-sm mt-2">{(error as Error).message}</p>
+      <div className="space-y-6">
+        <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
+          <div className="text-center py-8 text-red-600">
+            Error loading appointments: {(error as Error).message}
+          </div>
         </div>
       </div>
     );
@@ -193,178 +170,172 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header and Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">My Appointments</h1>
-            <p className="text-gray-600">Manage your scheduled appointments</p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <Filter className="h-5 w-5 text-gray-500" />
-            <select
-              value={selectedStatus}
-              onChange={(e) => handleStatusChange(e.target.value as AppointmentStatus)}
-              className="border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-blue-500"
-            >
-              {statusOptions.map(option => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+      <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-800">My Appointments</h1>
+          <p className="text-gray-600">Manage your scheduled appointments</p>
         </div>
 
-        {/* Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-600 text-sm font-medium">Total</p>
-                <p className="text-2xl font-bold text-blue-800">{totalAppointments}</p>
-              </div>
-              <Calendar className="h-6 w-6 text-blue-600" />
-            </div>
-          </div>
-          
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-600 text-sm font-medium">Completed</p>
-                <p className="text-2xl font-bold text-green-800">
-                  {getCompletedAppointmentsCount()}
-                </p>
-              </div>
-              <Clock className="h-6 w-6 text-green-600" />
-            </div>
-          </div>
-          
-          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-600 text-sm font-medium">Active</p>
-                <p className="text-2xl font-bold text-purple-800">
-                  {getActiveAppointmentsCount()}
-                </p>
-              </div>
-              <User className="h-6 w-6 text-purple-600" />
-            </div>
-          </div>
-          
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-orange-600 text-sm font-medium">Today</p>
-                <p className="text-2xl font-bold text-orange-800">
-                  {getTodayAppointmentsCount()}
-                </p>
-              </div>
-              <MapPin className="h-6 w-6 text-orange-600" />
-            </div>
-          </div>
-        </div>
-
-        {/* Appointments List */}
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading appointments...</p>
-            </div>
-          ) : filteredAppointments.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <p className="text-lg font-medium">No {selectedStatus} appointments found</p>
-              <p className="text-sm">When you have appointments, they will appear here.</p>
-            </div>
-          ) : (
-            filteredAppointments.map((appointment) => (
-              <div
-                key={appointment._id}
-                className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
-              >
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                  {/* Client Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold text-sm">
-                          {appointment.client.firstName.charAt(0)}{appointment.client.lastName.charAt(0)}
-                        </span>
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-gray-800">
+        {/* Appointments Table */}
+        <div className="overflow-x-auto border border-[#71717180]/50 min-h-[60vh] text-[#555555]">
+          <table className="w-full text-sm min-w-[800px]">
+            <thead>
+              <tr className="bg-white border-b-[#00000080]/50 border-b">
+                <th className="text-center py-3 px-4 text-lg font-medium whitespace-nowrap">
+                  Client
+                </th>
+                <th className="text-center px-4 py-3 text-lg font-medium whitespace-nowrap">
+                  Contact
+                </th>
+                <th className="text-center px-4 py-3 text-lg font-medium whitespace-nowrap">
+                  Services
+                </th>
+                <th className="text-center px-4 py-3 text-lg font-medium whitespace-nowrap">
+                  Date & Time
+                </th>
+                <th className="text-center px-4 py-3 text-lg font-medium">
+                  Status
+                </th>
+                <th className="text-center px-4 py-3 text-lg font-medium">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6}>
+                    <div className="w-full min-h-[60vh] flex items-center justify-center text-center">
+                      Loading appointments...
+                    </div>
+                  </td>
+                </tr>
+              ) : appointments.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-4">
+                    No appointments found.
+                  </td>
+                </tr>
+              ) : (
+                appointments.map((appointment, index) => (
+                  <tr
+                    key={appointment._id}
+                    className={`${index % 2 === 0 ? "bg-white" : "bg-[#F7F7F7]"}`}
+                  >
+                    <td className="py-3 px-4 whitespace-nowrap text-[14px] font-medium text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-semibold text-xs">
+                            {appointment.client.firstName.charAt(0)}{appointment.client.lastName.charAt(0)}
+                          </span>
+                        </div>
+                        <span>
                           {appointment.client.firstName} {appointment.client.lastName}
-                        </h3>
-                        <p className="text-sm text-gray-600">{appointment.client.email}</p>
-                        <p className="text-xs text-gray-500">{appointment.client.mobile}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {appointment.client.services.map((service, index) => (
-                        <span
-                          key={index}
-                          className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
-                        >
-                          {service}
                         </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Appointment Details */}
-                  <div className="text-center lg:text-right">
-                    <p className="font-semibold text-gray-800">
-                      {formatDisplayDate(appointment.date)}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {formatTime(appointment.startTime)} - {formatTime(appointment.endTime)}
-                    </p>
-                    <p className="text-xs text-gray-500">1 hour</p>
-                  </div>
-
-                  {/* Status and Actions */}
-                  <div className="flex flex-col items-end gap-3">
-                    <StatusDropdown appointment={appointment} />
-                    
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        statusColors[appointment.client.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
-                      }`}>
-                        Client: {appointment.client.status}
-                      </span>
-                      
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
+                      <div className="flex flex-col gap-1">
+                        <span>{appointment.client.email}</span>
+                        <span className="text-gray-500">+{appointment.client.mobile}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
+                      <div className="flex flex-wrap gap-1 justify-center">
+                        {appointment.client.services.slice(0, 2).map((service, index) => (
+                          <span
+                            key={index}
+                            className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded"
+                          >
+                            {service}
+                          </span>
+                        ))}
+                        {appointment.client.services.length > 2 && (
+                          <span className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                            +{appointment.client.services.length - 2}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-semibold">
+                          {formatDisplayDate(appointment.date)}
+                        </span>
+                        <span className="text-gray-500">
+                          {formatTime(appointment.startTime)} - {formatTime(appointment.endTime)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
+                      <StatusDropdown appointment={appointment} />
+                    </td>
+                    <td className="px-4 py-4 flex gap-2 items-center justify-center text-center font-medium">
                       <button
                         onClick={() => openModal(appointment)}
-                        className="text-blue-600 hover:text-blue-800 transition-colors p-1"
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
                         title="View Details"
                       >
                         <Eye size={16} />
                       </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Additional Info */}
-                <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500">
-                  Created: {formatDateToDDMMYYYYHHMM(appointment.createdAt)}
-                  {appointment.remark && (
-                    <span className="ml-3">Remark: "{appointment.remark}"</span>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+                      <button
+                        onClick={() => openAssessmentModal(appointment)}
+                        className="text-green-600 hover:text-green-800 transition-colors relative group"
+                        title="Assessment Forms"
+                      >
+                        <FileText size={16} />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                          Assessment Forms
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                        </div>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Appointment Details Modal */}
-      {/* <ModalComponent isOpen={isModalOpen} onClose={closeModal}>
+      <ModalComponent isOpen={isModalOpen} onClose={closeModal}>
         {selectedAppointment && <PersonnelAppointmentDetails appointment={selectedAppointment} />}
-      </ModalComponent> */}
+      </ModalComponent>
+
+      {/* Assessment Forms Modal */}
+      <ModalComponent isOpen={isAssessmentModalOpen} onClose={closeAssessmentModal}>
+        <div className="w-full max-w-md p-6">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Form</h2>
+          
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto">
+            {assessmentForms.map((form) => (
+              <button
+                key={form.id}
+                onClick={() => handleFormSelect(form.slug)}
+                className="w-full text-left p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-800 font-medium">{form.title}</span>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {selectedAppointmentForAssessment && (
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                Selected Client: <span className="font-medium">{selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}</span>
+              </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Appointment: {formatDisplayDate(selectedAppointmentForAssessment.date)} at {formatTime(selectedAppointmentForAssessment.startTime)}
+              </p>
+            </div>
+          )}
+        </div>
+      </ModalComponent>
     </div>
   );
 };
