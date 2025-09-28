@@ -17,8 +17,8 @@ const rolePaths: Record<string, string> = {
   Admin: "/dashboard/admin",
 };
 
-const DEFAULT_AUTHENTICATED_PATH = "/dashboard";
-const AUTH_PAGES = ["/", "/api/auth/signin", "/login", "/otp-verify"];
+const DEFAULT_AUTHENTICATED_PATH = "/signin";
+const AUTH_PAGES = ["/", "/api/auth/signin"];
 
 export async function middleware(req: NextRequest) {
   const session = await auth();
