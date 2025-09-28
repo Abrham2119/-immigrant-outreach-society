@@ -1,34 +1,22 @@
-import { AppointmentResponse, AppointmentsListResponse } from '@/domain/entities/appointmentPersonnel';
-import api from './axios';
+import { AppointmentsListResponse, AppointmentResponse } from "@/domain/entities/appointmentPersonnel";
+import api from "@/infrastructure/api/axios";
 
-// Get appointments by personnel ID with status filter
-export async function getPersonnelAppointmentsUseCase(
+export async function getPersonnelAppointmentsApi(
   personnelId: string,
   status: string = 'booked'
-): Promise<AppointmentResponse[]> {
-  return getPersonnelAppointmentsApi(personnelId, status);
+): Promise<AppointmentsListResponse> {
+  const { data } = await api.get<AppointmentResponse[]>(`/appointments/personnel/${personnelId}?status=${status}`);
+  
+  return {
+    data: data,
+    total: data.length
+  };
 }
 
-export const getPersonnelAppointmentsApi = async (
-  personnelId: string,
-  status: string = 'booked'
-): Promise<AppointmentResponse[]> => {
-  const { data } = await api.get<AppointmentsListResponse>(`/appointments/personnel/${personnelId}?status=${status}`);
-  return data.appointments;
-};
-
-// Update appointment status for personnel
-export async function updatePersonnelAppointmentStatusUseCase(
+export async function updatePersonnelAppointmentStatusApi(
   appointmentId: string, 
   statusData: { status: string; remark?: string }
 ): Promise<{ message: string }> {
-  return updatePersonnelAppointmentStatusApi(appointmentId, statusData);
-}
-
-export const updatePersonnelAppointmentStatusApi = async (
-  appointmentId: string, 
-  statusData: { status: string; remark?: string }
-): Promise<{ message: string }> => {
-  const { data } = await api.put(`/appointments/${appointmentId}/status`, statusData);
+  const { data } = await api.patch(`/appointments/${appointmentId}/status`, statusData);
   return data;
-};
+}

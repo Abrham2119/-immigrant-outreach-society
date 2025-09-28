@@ -1,4 +1,6 @@
-export interface AppointmentClient {
+export type AppointmentStatus = "all" | "booked" | "arrived" | "with_personnel" | "completed" | "cancelled" | "no-show";
+
+export interface Client {
   _id: string;
   firstName: string;
   lastName: string;
@@ -10,44 +12,42 @@ export interface AppointmentClient {
   language: string;
   address: string;
   birthDate: string;
-  message?: string;
+  message: string;
   services: string[];
   status: string;
   registeredBy: string | null;
   createdAt: string;
   updatedAt: string;
-  __v?: number;
+  __v: number;
 }
 
-export interface AppointmentPersonnel {
+export interface Personnel {
   _id: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
-  password?: string;
+  password: string;
   createdAt: string;
   updatedAt: string;
-  __v?: number;
+  __v: number;
 }
 
 export interface AppointmentResponse {
   _id: string;
-  client: AppointmentClient;
-  personnel: AppointmentPersonnel;
+  client: Client;
+  personnel: Personnel;
   date: string;
   startTime: string;
   endTime: string;
-  status: 'booked' | 'completed' | 'cancelled' | 'no-show' | 'arrived' | 'with_personnel';
+  status: AppointmentStatus;
   remark?: string;
   createdAt: string;
   updatedAt: string;
-  __v?: number;
+  __v: number;
 }
 
 export interface AppointmentsListResponse {
-  appointments: AppointmentResponse[];
-  success?: boolean;
-  count?: number;
-  total?: number;
+  data: AppointmentResponse[];
+  total: number;
 }

@@ -1,14 +1,14 @@
 "use client";
-import { AppointmentResponse } from '@/domain/entities/appointmentPersonnel';
-import { usePersonnelAppointmentManagement } from '@/domain/use-cases/personnelAppointment';
+import { AppointmentResponse, AppointmentStatus } from '@/domain/entities/appointmentPersonnel';
+import { usePersonnelAppointmentManagement } from '@/application/hooks/usePersonnelAppointments';
 import { formatDateToDDMMYYYYHHMM } from '@/lib/utils/formatDateToDDMMYYYY';
 import { Calendar, Clock, Eye, Filter, MapPin, User } from 'lucide-react';
 import { useState } from 'react';
-import ModalComponent from '../ui/modal/Modal';
+import ModalComponent from '@/components/ui/modal/Modal';
 import { PersonnelAppointmentDetails } from './PersonnelAppointmentDetails';
 
 // Status options for filtering
-const statusOptions = [
+const statusOptions: { label: string; value: AppointmentStatus }[] = [
   { label: 'All Appointments', value: 'all' },
   { label: 'Booked', value: 'booked' },
   { label: 'Arrived', value: 'arrived' },
@@ -28,29 +28,48 @@ const statusColors = {
 };
 
 interface AppointmentsListProps {
+  selectedStatus?: AppointmentStatus;
+  onStatusChange?: (status: AppointmentStatus) => void;
   onAppointmentSelect?: (appointment: AppointmentResponse) => void;
 }
 
-export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onAppointmentSelect }) => {
-  const [selectedStatus, setSelectedStatus] = useState<string>('booked');
+export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ 
+  selectedStatus: externalStatus, 
+  onStatusChange,
+  onAppointmentSelect 
+}) => {
+  const [internalStatus, setInternalStatus] = useState<AppointmentStatus>('booked');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentResponse | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
   const [remark, setRemark] = useState<string>('');
 
-  const { usePersonnelAppointments, updateAppointmentStatusMutation, personnelId } = usePersonnelAppointmentManagement();
+  const { personnelId, usePersonnelAppointments, useUpdateAppointmentStatus } = usePersonnelAppointmentManagement();
   
-  const { data: appointments = [], isLoading, error } = usePersonnelAppointments(selectedStatus === 'all' ? 'booked' : selectedStatus);
+  // Use external status if provided, otherwise use internal state
+  const selectedStatus = externalStatus || internalStatus;
+  
+  const { data: appointmentsData, isLoading, error } = usePersonnelAppointments({
+    personnelId: personnelId!,
+    status: selectedStatus === 'all' ? 'booked' : selectedStatus
+  });
+  
+  const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
-  console.log(usePersonnelAppointments)
+  const appointments = appointmentsData?.data || [];
+  const totalAppointments = appointmentsData?.total || 0;
 
   // Filter appointments if 'all' is selected
   const filteredAppointments = selectedStatus === 'all' 
     ? appointments 
     : appointments.filter(apt => apt.status === selectedStatus);
 
-  const handleStatusChange = (value: string) => {
-    setSelectedStatus(value);
+  const handleStatusChange = (value: AppointmentStatus) => {
+    if (onStatusChange) {
+      onStatusChange(value);
+    } else {
+      setInternalStatus(value);
+    }
   };
 
   const openModal = (appointment: AppointmentResponse) => {
@@ -76,6 +95,8 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
         }
       });
       setRemark('');
+    } catch (error) {
+      console.error('Failed to update appointment status:', error);
     } finally {
       setStatusUpdateLoading(null);
     }
@@ -97,6 +118,22 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
     const period = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${period}`;
+  };
+
+  // Get today's appointments count
+  const getTodayAppointmentsCount = () => {
+    const today = new Date().toDateString();
+    return appointments.filter(a => new Date(a.date).toDateString() === today).length;
+  };
+
+  // Get completed appointments count
+  const getCompletedAppointmentsCount = () => {
+    return appointments.filter(a => a.status === 'completed').length;
+  };
+
+  // Get active appointments count
+  const getActiveAppointmentsCount = () => {
+    return appointments.filter(a => a.status === 'with_personnel').length;
   };
 
   // Status dropdown component for each row
@@ -148,7 +185,7 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
       <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
         <div className="text-red-600">
           <p className="text-lg font-medium">Error loading appointments</p>
-          <p className="text-sm mt-2">{error.message}</p>
+          <p className="text-sm mt-2">{(error as Error).message}</p>
         </div>
       </div>
     );
@@ -168,7 +205,7 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
             <Filter className="h-5 w-5 text-gray-500" />
             <select
               value={selectedStatus}
-              onChange={(e) => handleStatusChange(e.target.value)}
+              onChange={(e) => handleStatusChange(e.target.value as AppointmentStatus)}
               className="border border-gray-300 rounded-lg px-4 py-2 outline-none focus:border-blue-500"
             >
               {statusOptions.map(option => (
@@ -186,7 +223,7 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Total</p>
-                <p className="text-2xl font-bold text-blue-800">{filteredAppointments.length}</p>
+                <p className="text-2xl font-bold text-blue-800">{totalAppointments}</p>
               </div>
               <Calendar className="h-6 w-6 text-blue-600" />
             </div>
@@ -197,7 +234,7 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
               <div>
                 <p className="text-green-600 text-sm font-medium">Completed</p>
                 <p className="text-2xl font-bold text-green-800">
-                  {appointments.filter(a => a.status === 'completed').length}
+                  {getCompletedAppointmentsCount()}
                 </p>
               </div>
               <Clock className="h-6 w-6 text-green-600" />
@@ -209,7 +246,7 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
               <div>
                 <p className="text-purple-600 text-sm font-medium">Active</p>
                 <p className="text-2xl font-bold text-purple-800">
-                  {appointments.filter(a => a.status === 'with_personnel').length}
+                  {getActiveAppointmentsCount()}
                 </p>
               </div>
               <User className="h-6 w-6 text-purple-600" />
@@ -221,7 +258,7 @@ export const PersonnelAppointmentsPage: React.FC<AppointmentsListProps> = ({ onA
               <div>
                 <p className="text-orange-600 text-sm font-medium">Today</p>
                 <p className="text-2xl font-bold text-orange-800">
-                  {appointments.filter(a => new Date(a.date).toDateString() === new Date().toDateString()).length}
+                  {getTodayAppointmentsCount()}
                 </p>
               </div>
               <MapPin className="h-6 w-6 text-orange-600" />
