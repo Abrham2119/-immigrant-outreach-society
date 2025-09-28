@@ -48,6 +48,7 @@ export default function FormsPage() {
   const { useForms } = useFormManagement();
 
   const { data, isLoading, error } = useForms(pageNum, pageSize, search, service);
+  console.log(data)
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -212,8 +213,9 @@ export default function FormsPage() {
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       <div className="flex items-center justify-center gap-2">
-                        <User size={16} className="text-gray-500" />
-                        {getClientName(form)}
+                        {/* <User size={16} className="text-gray-500" /> */}
+                       {form.formData.client_name
+}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
