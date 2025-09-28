@@ -6,6 +6,8 @@ import { formatDateToDDMMYYYYHHMM } from '@/lib/utils/formatDateToDDMMYYYY';
 import { Calendar, Clock, Eye, User, Users } from 'lucide-react';
 import { useState } from 'react';
 import { AppointmentDetails } from './AppointmentDetails';
+import { Client } from '@/domain/entities/client';
+import { useClientManagement } from '@/domain/use-cases/client';
 
 // Status options and colors
 const statusOptions = [
@@ -29,6 +31,8 @@ export default function AppointmentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
+    const { updateClientStatusMutation } = useClientManagement();
+  
 
   const { useAppointments, updateAppointmentStatusMutation } = useAppointmentManagement();
   
@@ -36,6 +40,18 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+  };
+
+    const handleStatusUpdate = async (clientId: string, newStatus: string) => {
+    setStatusUpdateLoading(clientId);
+    try {
+      await updateClientStatusMutation.mutateAsync({
+        clientId,
+        statusData: { status: newStatus }
+      });
+    } finally {
+      setStatusUpdateLoading(null);
+    }
   };
 
   const handleStatusChange = (value: string) => {
@@ -87,7 +103,17 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
 
   // Status dropdown component for each row
   const StatusDropdown = ({ appointment }: { appointment: Appointment }) => (
- <div className=' bg-blue-500 px-2 text-center rounded-4xl py-1 text-white'>{appointment.status}</div>
+    <select
+      value={appointment.status}
+      onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
+      disabled={statusUpdateLoading === appointment._id}
+      className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+        } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
+    >
+      <option value="upcoming">Upcoming</option>
+      <option value="arrived">Arrived</option>
+      <option value="with_personnel">With Personnel</option>
+    </select>
   );
 
   if (error) {
