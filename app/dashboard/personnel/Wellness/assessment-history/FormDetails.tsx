@@ -38,22 +38,22 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
   const { form } = data;
 
   // Function to format form data for display
-  const formatFormData = (formData: Record<string, any>) => {
-    return Object.entries(formData).map(([key, value]) => {
-      let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-      let displayValue = value;
+//   const formatFormData = (formData: Record<string, any>) => {
+//     return Object.entries(formData).map(([key, value]) => {
+//       let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+//       let displayValue = value;
 
-      if (Array.isArray(value)) {
-        displayValue = value.join(', ');
-      } else if (typeof value === 'boolean') {
-        displayValue = value ? 'Yes' : 'No';
-      } else if (typeof value === 'object') {
-        displayValue = JSON.stringify(value);
-      }
+//       if (Array.isArray(value)) {
+//         displayValue = value.join(', ');
+//       } else if (typeof value === 'boolean') {
+//         displayValue = value ? 'Yes' : 'No';
+//       } else if (typeof value === 'object') {
+//         displayValue = JSON.stringify(value);
+//       }
 
-      return { key: displayKey, value: displayValue };
-    });
-  };
+//       return { key: displayKey, value: displayValue };
+//     });
+//   };
 
   return (
     <div className="p-6 max-h-[80vh] overflow-y-auto">
@@ -187,7 +187,7 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
         <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
           Form Data
         </h3>
-        <div className="bg-gray-50 rounded-lg p-4">
+        {/* <div className="bg-gray-50 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {formatFormData(form.formData).map((item, index) => (
               <div key={index} className="break-words">
@@ -200,7 +200,7 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
