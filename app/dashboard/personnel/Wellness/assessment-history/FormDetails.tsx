@@ -27,7 +27,7 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
     );
   }
 
-  if (!data?.form) {
+  if (!data?.forms || data.forms.length === 0) {
     return (
       <div className="p-6 text-center text-gray-600">
         Form not found.
@@ -35,25 +35,32 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
     );
   }
 
-  const { form } = data;
+  const form = data.forms[0];
 
   // Function to format form data for display
-//   const formatFormData = (formData: Record<string, any>) => {
-//     return Object.entries(formData).map(([key, value]) => {
-//       let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-//       let displayValue = value;
+  const formatFormData = (formData: Record<string, any>) => {
+    return Object.entries(formData).map(([key, value]) => {
+      // Skip personnel and client name since they're displayed separately
+      if (key === 'data_entry_personnel_full_name' || key === 'client_name') {
+        return null;
+      }
 
-//       if (Array.isArray(value)) {
-//         displayValue = value.join(', ');
-//       } else if (typeof value === 'boolean') {
-//         displayValue = value ? 'Yes' : 'No';
-//       } else if (typeof value === 'object') {
-//         displayValue = JSON.stringify(value);
-//       }
+      let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      let displayValue = value;
 
-//       return { key: displayKey, value: displayValue };
-//     });
-//   };
+      if (Array.isArray(value)) {
+        displayValue = value.join(', ');
+      } else if (typeof value === 'boolean') {
+        displayValue = value ? 'Yes' : 'No';
+      } else if (typeof value === 'object' && value !== null) {
+        displayValue = JSON.stringify(value);
+      } else if (value === null || value === undefined) {
+        displayValue = 'N/A';
+      }
+
+      return { key: displayKey, value: displayValue };
+    }).filter(item => item !== null);
+  };
 
   return (
     <div className="p-6 max-h-[80vh] overflow-y-auto">
@@ -61,7 +68,7 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
       
       {/* Basic Information */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2 border-gray-200">
           Basic Information
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -101,106 +108,73 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
       </div>
 
       {/* Client Information */}
-      {(form.client || form.formData.client_name) && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
-            Client Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {form.client ? (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {form.client.firstName} {form.client.lastName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="mt-1 text-sm text-gray-900">{form.client.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Phone</label>
-                  <p className="mt-1 text-sm text-gray-900">+{form.client.mobile}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Gender</label>
-                  <p className="mt-1 text-sm text-gray-900">{form.client.gender}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Nationality</label>
-                  <p className="mt-1 text-sm text-gray-900">{form.client.nationality}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Address</label>
-                  <p className="mt-1 text-sm text-gray-900">{form.client.address}</p>
-                </div>
-              </>
-            ) : (
-              <div className="col-span-2">
-                <p className="text-sm text-gray-600">
-                  Client: {form.formData.client_name || 'N/A'}
-                </p>
-              </div>
-            )}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2 border-gray-200">
+          Client Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-600">Client ID</label>
+            <p className="mt-1 text-sm text-gray-900">{form.client}</p>
+          </div>
+          <div>
+            <label className="text-sm font-medium text-gray-600">Client Name</label>
+            <p className="mt-1 text-sm text-gray-900">
+              {form.formData.client_name || 'N/A'}
+            </p>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Personnel Information */}
-      {(form.personnel || form.formData.data_entry_personnel_full_name) && (
-        <div className="mb-8">
-          <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
-            Personnel Information
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {form.personnel ? (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {form.personnel.firstName} {form.personnel.lastName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="mt-1 text-sm text-gray-900">{form.personnel.email}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Role</label>
-                  <p className="mt-1 text-sm text-gray-900">{form.personnel.role}</p>
-                </div>
-              </>
-            ) : (
-              <div className="col-span-2">
-                <p className="text-sm text-gray-600">
-                  Personnel: {form.formData.data_entry_personnel_full_name || form.formData['Data Entry personnel full name'] || 'N/A'}
+      <div className="mb-8">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2 border-gray-200">
+          Personnel Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {form.personnel && typeof form.personnel === 'object' ? (
+            <>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Name</label>
+                <p className="mt-1 text-sm text-gray-900">
+                  {form.personnel.firstName} {form.personnel.lastName}
                 </p>
               </div>
-            )}
-          </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">Personnel ID</label>
+                <p className="mt-1 text-sm text-gray-900">{form.personnel._id}</p>
+              </div>
+            </>
+          ) : (
+            <div className="col-span-2">
+              <label className="text-sm font-medium text-gray-600">Data Entry Personnel</label>
+              <p className="mt-1 text-sm text-gray-900">
+                {form.formData.data_entry_personnel_full_name || 'N/A'}
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Form Data */}
       <div className="mb-8">
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2 border-gray-200">
           Form Data
         </h3>
-        {/* <div className="bg-gray-50 rounded-lg p-4">
+        <div className="bg-gray-50 rounded-lg p-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {formatFormData(form.formData).map((item, index) => (
               <div key={index} className="break-words">
                 <label className="text-sm font-medium text-gray-600 block mb-1">
                   {item.key}
                 </label>
-                <p className="text-sm text-gray-900 bg-white p-2 rounded border">
+                <p className="text-sm text-gray-900 bg-white p-2 rounded border border-gray-300">
                   {item.value || 'N/A'}
                 </p>
               </div>
             ))}
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );

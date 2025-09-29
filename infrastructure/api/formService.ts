@@ -30,12 +30,12 @@ export const getFormsApi = async (
 };
 
 // Get form by ID
-export const getFormByIdApi = async (formId: string): Promise<FormResponse> => {
+export const getFormByIdApi = async (formId: string): Promise<FormResponseId> => {
   const { data } = await api.get(`/forms/client/${formId}`);
   return data;
 };
 
-export async function getFormByIdUseCase(formId: string): Promise<FormResponse> {
+export async function getFormByIdUseCase(formId: string): Promise<FormResponseId> {
   return getFormByIdApi(formId);
 }
 

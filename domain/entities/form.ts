@@ -43,5 +43,9 @@ export interface FormsResponse {
 
 export interface FormResponse {
   success: boolean;
-  form: Form;
+  forms: Form;
 }
+
+
+
+
