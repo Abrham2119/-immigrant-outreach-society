@@ -34,7 +34,9 @@ const AppointmentBooking: React.FC<AppointmentBookingProps> = ({
   } = useAppointmentManagement();
 
   // Calculate date range for API calls (current date to 30 days ahead)
-  const startDate = new Date("2025-09-27").toISOString().split('T')[0];
+const tomorrow = new Date();
+tomorrow.setDate(tomorrow.getDate() + 1);
+const startDate = tomorrow.toISOString().split('T')[0];
   const endDate = new Date("2025-10-27").toISOString().split('T')[0];
 
   // Fetch data
