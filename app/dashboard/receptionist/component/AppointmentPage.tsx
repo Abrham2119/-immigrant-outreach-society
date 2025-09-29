@@ -37,7 +37,7 @@ const AppointmentPage: React.FC<AppointmentPageProps> = ({
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-gray-900 mb-2">📍 Location</h3>
-            <p className="text-sm text-gray-600">Wellness Center, Toronto, Canada</p>
+            <p className="text-sm text-gray-600">Weliness Center, Calgary, Alberta, Canada</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-gray-900 mb-2">⏰ Duration</h3>
