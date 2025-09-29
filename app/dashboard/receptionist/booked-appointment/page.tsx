@@ -1,5 +1,8 @@
 import AppointmentsPage from "./AppointmentsPage";
 
 export default function Appointments() {
-  return <AppointmentsPage />;
+  return <div>
+   
+    <AppointmentsPage />
+  </div>;
 }
