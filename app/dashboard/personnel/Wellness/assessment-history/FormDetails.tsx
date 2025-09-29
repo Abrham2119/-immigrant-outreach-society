@@ -45,7 +45,7 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
         return null;
       }
 
-      let displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      const displayKey = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       let displayValue = value;
 
       if (Array.isArray(value)) {
