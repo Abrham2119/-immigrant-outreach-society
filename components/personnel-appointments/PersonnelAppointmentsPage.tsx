@@ -23,16 +23,13 @@ interface PersonnelAppointmentsPageProps {
 
 // Assessment form options with slugs for routing
 const assessmentForms = [
-  { id: 'mental-health', title: 'Mental Health Assessment', slug: 'mental-health' },
-  { id: 'physical-health', title: 'Physical Health Assessment', slug: 'physical-health' },
-  { id: 'psychosocial', title: 'Psychosocial Assessment', slug: 'psychosocial' },
-  { id: 'intake', title: 'Intake Assessment', slug: 'intake' },
-  { id: 'risk', title: 'Risk Assessment', slug: 'risk' },
-  { id: 'progress', title: 'Progress Assessment', slug: 'progress' },
-  { id: 'discharge', title: 'Discharge Assessment', slug: 'discharge' },
-  { id: 'psychosocial-intake', title: 'Psychosocial Intake Assessment', slug: 'psychosocial-intake' },
-  { id: 'wellness-check', title: 'Wellness Check Assessment', slug: 'wellness-check' },
-  { id: 'crisis-evaluation', title: 'Crisis Evaluation', slug: 'crisis-evaluation' },
+  { id: 'contact-note', title: 'Contact Note', slug: 'contact-note' },        
+  { id: 'discharge-summary', title: 'Discharge Summary', slug: 'discharge-summary' },  
+  { id: 'general-intake', title: 'General Intake Form', slug: 'general-intake' },  
+  { id: 'group-contact-note', title: 'Group Contact Note', slug: 'group-contact-note' },  
+  { id: 'intake-assessment', title: 'Intake Assessment', slug: 'intake-assessment' },  
+  { id: 'psychosocial-intervention', title: 'Psychosocial Intervention Plan', slug: 'psychosocial-intervention' },  
+  { id: 'psychosocial-intake', title: 'Psychosocial Intake Assessment', slug: 'psychosocial-intake' }, 
 ];
 
 export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps> = ({ 
@@ -71,6 +68,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   const openAssessmentModal = (appointment: AppointmentResponse) => {
     setSelectedAppointmentForAssessment(appointment);
+    console.log("Selected appointment for assessment:", appointment);
     setIsAssessmentModalOpen(true);
   };
 
@@ -80,9 +78,9 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   };
 
   const handleFormSelect = (formSlug: string) => {
-    if (selectedAppointmentForAssessment) {
-      // Navigate to the form page in the Wellness dashboard with the appointment ID and client ID
-      const formPath = `/dashboard/personnel/Wellness//assessment/${formSlug}`;
+    if (selectedAppointmentForAssessment && personnelId) {
+      // Navigate to the form page with all required parameters
+      const formPath = `/dashboard/personnel/Wellness/assessment/${selectedAppointmentForAssessment.client._id}/${formSlug}`;
       router.push(formPath);
     }
     closeAssessmentModal();
@@ -307,7 +305,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
       {/* Assessment Forms Modal */}
       <ModalComponent isOpen={isAssessmentModalOpen} onClose={closeAssessmentModal}>
         <div className="w-full max-w-md p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Form</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Assessment Forms</h2>
           
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {assessmentForms.map((form) => (
@@ -327,9 +325,18 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
           {selectedAppointmentForAssessment && (
             <div className="mt-6 p-4 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">
-                Selected Client: <span className="font-medium">{selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}</span>
+                <strong>Selected Client:</strong> {selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-sm text-gray-600 mt-1">
+                <strong>Client ID:</strong> {selectedAppointmentForAssessment.client._id}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                <strong>Personnel ID:</strong> {personnelId}
+              </p>
+              <p className="text-sm text-gray-600 mt-1">
+                <strong>Appointment ID:</strong> {selectedAppointmentForAssessment._id}
+              </p>
+              <p className="text-xs text-gray-500 mt-2">
                 Appointment: {formatDisplayDate(selectedAppointmentForAssessment.date)} at {formatTime(selectedAppointmentForAssessment.startTime)}
               </p>
             </div>

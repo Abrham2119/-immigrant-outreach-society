@@ -5,13 +5,14 @@ import { useSubmitPsychosocialForm } from "@/application/hooks/useSubmitPsychoso
 import { Button } from "@/components/ui/Button/Button";
 import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
-import { PsychosocialInterventionFormPayload } from "@/domain/entities/psychosocialIntervention";
+import { PsychosocialInterventionFormPayload } from "@/domain/entities/assesments/psychosocialIntervention";
 import {
   psychosocialFormSchema,
   PsychosocialFormValues,
 } from "@/domain/validation/psychosocialForm.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
+import { useParams, useRouter } from "next/navigation";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
@@ -53,6 +54,8 @@ export default function PsychosocialInterventionForm() {
   });
 
   const { data: session } = useSession();
+   const router = useRouter();
+  
 
   const { mutate, isPending, isSuccess, error, isError } = useSubmitPsychosocialForm({
     onSuccess: () => {
@@ -60,18 +63,22 @@ export default function PsychosocialInterventionForm() {
       setTimeout(() => {
         reset();
       }, 3000);
+          router.push('/dashboard/personnel/Wellness/assessment-history');
+      
     },
     onError: (error) => {
       console.log("error", error);
       toast.error(`Submission failed: ${error.message || "Please try again later."}`);
     }
   });
+  const params = useParams();
+  const clientId = params.clientId as string;
 
   const onSubmit: SubmitHandler<PsychosocialFormValues> = (data) => {
-    const payload: PsychosocialInterventionFormPayload  = {
-      client: "68d6cf4803c61caa9ab44210",
+    const payload: PsychosocialInterventionFormPayload = {
+      client: clientId || "",
       personnel: session?.user?.id ?? "",
-      service:  session?.user?.role ?? "",
+      service: session?.user?.role ?? "",
       formData: {
         data_entry_personnel_full_name: data.dataEntryPersonnelFullName,
         client_name: data.clientName,
@@ -91,9 +98,9 @@ export default function PsychosocialInterventionForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col p-6 bg-white gap-4 w-full md:max-w-[820px] mx-auto"
+      className="flex flex-col p-6 bg-white gap-4 w-full md:max-w-[820px]  mx-start"
     >
-      <h2 className="text-2xl font-bold mb-4">Psychosocial Intervention Plan</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center">Psychosocial Intervention Plan</h2>
 
       {/* Data Entry Personnel & Client Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,10 +176,10 @@ export default function PsychosocialInterventionForm() {
 
       {/* Date Completed */}
       <InputField
-              placeholder={""} label="Date Completed"
-              type="date"
-              {...register("dateCompleted")}
-              error={errors.dateCompleted?.message}      />
+        placeholder={""} label="Date Completed"
+        type="date"
+        {...register("dateCompleted")}
+        error={errors.dateCompleted?.message} />
 
       {/* Acknowledgement */}
       <div className="flex items-center gap-2 mt-4">

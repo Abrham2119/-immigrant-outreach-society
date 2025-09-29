@@ -103,6 +103,8 @@ export default function FormsPage() {
 
   // Function to get personnel display name
   const getPersonnelName = (form: any) => {
+
+    console.log(form,"this is personale name")
     if (form.personnel) {
       return `${form.personnel.firstName} ${form.personnel.lastName}`;
     }
@@ -213,9 +215,8 @@ export default function FormsPage() {
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       <div className="flex items-center justify-center gap-2">
-                        {/* <User size={16} className="text-gray-500" /> */}
-                       {form.formData.client_name
-}
+                        <User size={16} className="text-gray-500" />
+                        {getClientName(form)}
                       </div>
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">

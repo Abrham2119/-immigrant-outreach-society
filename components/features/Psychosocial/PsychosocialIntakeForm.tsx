@@ -5,13 +5,14 @@ import { useSubmitPsychosocialIntake } from "@/application/hooks/useSubmitPsycho
 import { Button } from "@/components/ui/Button/Button";
 import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
-import { PsychosocialIntakeFormPayload } from "@/domain/entities/psychosocialIntake";
+import { PsychosocialIntakeFormPayload } from "@/domain/entities/assesments/psychosocialIntake";
 import {
   psychosocialIntakeSchema,
   PsychosocialIntakeValues,
 } from "@/domain/validation/psychosocialIntake.schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
@@ -80,6 +81,8 @@ export default function PsychosocialIntakeForm() {
   });
 
   const { data: session } = useSession();
+  const router = useRouter();
+
 
   const { mutate, isPending, isSuccess, error, isError } = useSubmitPsychosocialIntake({
     onSuccess: () => {
@@ -87,6 +90,7 @@ export default function PsychosocialIntakeForm() {
       setTimeout(() => {
         reset();
       }, 3000);
+      router.push('/dashboard/personnel/Wellness/assessment-history');
     },
     onError: (error) => {
       console.log("error", error);
@@ -94,11 +98,14 @@ export default function PsychosocialIntakeForm() {
     }
   });
 
+  const params = useParams();
+  const clientId = params.clientId as string;
+
   const onSubmit: SubmitHandler<PsychosocialIntakeValues> = (data) => {
     const payload: PsychosocialIntakeFormPayload = {
-      client: "68d6cf4803c61caa9ab44210",
+      client: clientId || "",
       personnel: session?.user?.id ?? "",
-      service:  session?.user?.role ?? "",
+      service: session?.user?.role ?? "",
       formData: {
         client_name: data.clientName,
         date_of_assessment: data.dateOfAssessment,
@@ -136,14 +143,14 @@ export default function PsychosocialIntakeForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col p-6 bg-white gap-6 w-full md:max-w-[900px] mx-auto"
+      className="flex flex-col p-6 bg-white gap-6 w-full md:max-w-[900px] mx-start"
     >
       <h2 className="text-2xl font-bold text-center mb-2">PSYCHOSOCIAL INTAKE ASSESSMENT</h2>
 
       {/* Client Information Section */}
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold mb-4">Client Information</h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             label="Client Name *"
@@ -152,18 +159,18 @@ export default function PsychosocialIntakeForm() {
             error={errors.clientName?.message}
           />
           <InputField
-                      placeholder={""} label="Date of Assessment *"
-                      type="date"
-                      {...register("dateOfAssessment")}
-                      error={errors.dateOfAssessment?.message}          />
+            placeholder={""} label="Date of Assessment *"
+            type="date"
+            {...register("dateOfAssessment")}
+            error={errors.dateOfAssessment?.message} />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
           <InputField
-                      placeholder={""} label="Date of Birth"
-                      type="date"
-                      {...register("dateOfBirth")}          />
-          
+            placeholder={""} label="Date of Birth"
+            type="date"
+            {...register("dateOfBirth")} />
+
           <Controller
             name="gender"
             control={control}
@@ -193,7 +200,7 @@ export default function PsychosocialIntakeForm() {
               />
             )}
           />
-          
+
           <Controller
             name="nationality"
             control={control}
@@ -223,7 +230,7 @@ export default function PsychosocialIntakeForm() {
               />
             )}
           />
-          
+
           <Controller
             name="language"
             control={control}
@@ -243,14 +250,14 @@ export default function PsychosocialIntakeForm() {
       {/* Contact Information Section */}
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-        
+
         <InputField
           label="Address"
           {...register("address")}
           placeholder="Enter full address"
           className="mb-4"
         />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
             label="Phone Number"
@@ -264,7 +271,7 @@ export default function PsychosocialIntakeForm() {
             placeholder="Enter email address"
           />
         </div>
-        
+
         <InputField
           label="Emergency Contact"
           {...register("emergencyContact")}
@@ -276,7 +283,7 @@ export default function PsychosocialIntakeForm() {
       {/* Assessment Information Section */}
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold mb-4">Assessment Information</h3>
-        
+
         {[
           { label: "Presenting Problem", name: "presentingProblem", rows: 3 },
           { label: "Medical History", name: "medicalHistory", rows: 3 },
@@ -305,14 +312,14 @@ export default function PsychosocialIntakeForm() {
       {/* Service Information Section */}
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold mb-4">Service Information</h3>
-        
+
         <InputField
           label="Referred By"
           {...register("referredBy")}
           placeholder="Enter referral source"
           className="mb-4"
         />
-        
+
         <Controller
           name="servicesRequested"
           control={control}
@@ -332,7 +339,7 @@ export default function PsychosocialIntakeForm() {
       {/* Consent Section */}
       <div className="border-b pb-4">
         <h3 className="text-lg font-semibold mb-4">Consent and Acknowledgments</h3>
-        
+
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <input
@@ -345,7 +352,7 @@ export default function PsychosocialIntakeForm() {
               I consent to psychosocial treatment and services
             </label>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <input
               type="checkbox"

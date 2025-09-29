@@ -17,10 +17,11 @@ export default function PsychosocialIntakePage() {
         draggable
         pauseOnHover
       />
-      <Suspense fallback={<div className="flex justify-center items-center min-h-screen">Loading Psychosocial Intake Assessment...</div>}>
-        <div className="min-h-screen bg-gray-50 py-8">
-          <PsychosocialIntakeForm />
-        </div>
+
+      <Suspense fallback={<div>Loading...</div>}>
+        <div className="min-h-screen   py-6 px-6 md:px-8 lg:p-12">
+          <PsychosocialIntakeForm />               
+          </div>
       </Suspense>
     </>
   );

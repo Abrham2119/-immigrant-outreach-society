@@ -1,5 +1,5 @@
 // application/hooks/useSubmitPsychosocialIntake.ts
-import { PsychosocialIntakeForm } from "@/domain/entities/psychosocialIntake";
+import { PsychosocialIntakeForm } from "@/domain/entities/assesments/psychosocialIntake";
 import { submitPsychosocialIntakeUseCase } from '@/domain/use-cases/submitPsychosocialIntake';
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";

@@ -18,7 +18,9 @@ export default function PsychosocialInterventionPage() {
         pauseOnHover
       />
       <Suspense fallback={<div>Loading...</div>}>
-        <PsychosocialInterventionForm />  
+        <div className="min-h-screen   py-6 px-6 md:px-8 lg:p-12">
+          <PsychosocialInterventionForm />                </div>
+
       </Suspense>
     </>
   );
