@@ -114,7 +114,7 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
     return (
         <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow">
             <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Holiday & Exceptions</h3>
+                <h3 className="text-xl font-semibold text-gray-900">Holiday & Exemptions</h3>
                 <p className="text-gray-600 mt-1 text-sm">
                     Add days when you will not be available for appointments
                 </p>
@@ -200,14 +200,14 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
 
                 {createExceptionMutation.isSuccess && (
                     <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-800">
-                        Exception added successfully!
+                        Exemption added successfully!
                     </div>
                 )}
             </form>
 
             {/* Existing Exceptions List */}
             <div>
-                <h4 className="font-medium text-gray-900 mb-4 text-lg">Scheduled Exceptions</h4>
+                <h4 className="font-medium text-gray-900 mb-4 text-lg">Scheduled Exemptions</h4>
                 
                 {exceptions.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">

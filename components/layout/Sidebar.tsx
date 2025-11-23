@@ -35,17 +35,17 @@ const personnelNavItems = [
   { href: "/", label: "Dashboard" },
   { href: "/schedule", label: "Schedule" },
   { href: "/schedule/exeption", label: "Schedule exeption" },
-  { href: "/clients", label: "Clients" },
-  { href: "/my-client-history", label: "My Client History" },
+  { href: "/clients", label: "Client Appointements" },
+  { href: "/my-client-history", label: "Client History" },
   { href: "/assessment-history", label: "Assessment History" },
 ];
 
 const personnelAdminNavItems = [
   { href: "/", label: "Dashboard" },
-  { href: "/schedule", label: "Schedule" },
-  { href: "/schedule/exeption", label: "Schedule exeption" },
-  { href: "/clients", label: "Clients" },
-  { href: "/my-client-history", label: "My Client History" },
+  // { href: "/schedule", label: "Schedule" },
+  // { href: "/schedule/exeption", label: "Schedule exeption" },
+  { href: "/clients", label: "Client Appointements" },
+  // { href: "/my-client-history", label: "Client History" },
   { href: "/assessment-history", label: "Assessment History" },
 ];
 
@@ -58,7 +58,7 @@ const receptionistNavItems = [
 
 const adminNavItems = [
   { href: "/", label: "Dashboard" },
-  { href: "/exeptions", label: "Exceptions" },
+  { href: "/exeptions", label: "Exemptions" },
 ];
 
 const defaultNavItems = [

@@ -51,7 +51,7 @@ const ExceptionDetailsModal = ({ isOpen, onClose, exception }: ExceptionDetailsM
                         <div className="border-b pb-4">
                             <h3 className="font-semibold text-base sm:text-lg mb-3 text-green-600 flex items-center gap-2">
                                 <Calendar size={20} />
-                                Exception Details
+                                Exemption Details
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
@@ -128,6 +128,7 @@ interface StatusUpdateModalProps {
     exception: Exception | null;
     onStatusUpdate: (exceptionId: string, status: 'approved' | 'rejected', comment: string) => void;
     isLoading: boolean;
+    exemptionValue: 'approved' | 'rejected'
 }
 
 const StatusUpdateModal = ({
@@ -135,19 +136,24 @@ const StatusUpdateModal = ({
     onClose,
     exception,
     onStatusUpdate,
-    isLoading
+    isLoading,
+    exemptionValue
 }: StatusUpdateModalProps) => {
-    const [status, setStatus] = useState<'approved' | 'rejected'>('approved');
+
+    console.log(exemptionValue)
+    const [status, setStatus] = useState<'approved' | 'rejected'>(exemptionValue);
     const [comment, setComment] = useState('');
 
+    useEffect(() => {
+        setStatus(exemptionValue);
+    }, [exemptionValue]);
     const handleSubmit = () => {
         if (!exception) return;
         onStatusUpdate(exception._id, status, comment);
     };
-
     const handleClose = () => {
         setComment('');
-        setStatus('approved');
+        setStatus(exemptionValue);
         onClose();
     };
 
@@ -155,7 +161,7 @@ const StatusUpdateModal = ({
         <ModalComponent isOpen={isOpen} onClose={handleClose}>
             <div className="p-4 sm:p-6 w-full">
                 <h2 className="text-xl sm:text-2xl w-full font-bold text-center mb-6">
-                    Update Exception Status
+                    Are you sure to change the exemption status?
                 </h2>
 
                 {exception && (
@@ -227,13 +233,14 @@ const StatusUpdateModal = ({
 export default function ExceptionComponent() {
     const [search, setSearch] = useState<string>("");
     const [pageNum, setPageNum] = useState<number>(1);
-    const [pageSize, setPageSize] = useState<number>(10); 
-    const [status, setStatus] = useState<string>("all"); 
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [status, setStatus] = useState<string>("all");
     const [type, setType] = useState<string>("all");
-    const [personnelId, setPersonnelId] = useState<string>(""); 
+    const [personnelId, setPersonnelId] = useState<string>("");
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
     const [selectedException, setSelectedException] = useState<Exception | null>(null);
+    const [exemptionValue, setExemptionValue] = useState<'approved' | 'rejected'>("approved")
 
     const { data, isLoading, error, refetch } = useExceptions(pageNum, pageSize, search, status, type, personnelId);
     const updateExceptionStatusMutation = useUpdateExceptionStatus();
@@ -268,8 +275,9 @@ export default function ExceptionComponent() {
         setIsDetailsModalOpen(true);
     };
 
-    const openStatusModal = (exception: Exception) => {
+    const openStatusModal = (exception: Exception, value: | 'approved' | 'rejected') => {
         setSelectedException(exception);
+        setExemptionValue(value)
         setIsStatusModalOpen(true);
     };
 
@@ -290,7 +298,7 @@ export default function ExceptionComponent() {
             },
             {
                 onSuccess: () => {
-                    toast.success(`Exception ${newStatus} successfully!`);
+                    toast.success(`Exemption ${newStatus} successfully!`);
                     closeModals();
                     refetch();
                 },
@@ -335,8 +343,8 @@ export default function ExceptionComponent() {
             <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
                 {/* Debug Info - Remove in production */}
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-800">Exception Requests</h1>
-                    <p className="text-gray-600">Manage and review exception requests from personnel</p>
+                    <h1 className="text-2xl font-bold text-gray-800">Exemption Requests</h1>
+                    <p className="text-gray-600">Manage and review exemption requests from personnel</p>
                 </div>
 
                 {/* Header Actions */}
@@ -482,14 +490,14 @@ export default function ExceptionComponent() {
                                                 {exception.status === 'pending' && (
                                                     <>
                                                         <button
-                                                            onClick={() => openStatusModal(exception)}
+                                                            onClick={() => openStatusModal(exception, "approved")}
                                                             className="text-green-600 hover:text-green-800 transition-colors p-1 rounded hover:bg-green-50"
                                                             title="Approve Exception"
                                                         >
                                                             <Check size={16} />
                                                         </button>
                                                         <button
-                                                            onClick={() => openStatusModal(exception)}
+                                                            onClick={() => openStatusModal(exception, "rejected")}
                                                             className="text-red-600 hover:text-red-800 transition-colors p-1 rounded hover:bg-red-50"
                                                             title="Reject Exception"
                                                         >
@@ -526,6 +534,7 @@ export default function ExceptionComponent() {
                 isOpen={isStatusModalOpen}
                 onClose={closeModals}
                 exception={selectedException}
+                exemptionValue={exemptionValue}
                 onStatusUpdate={handleStatusUpdate}
                 isLoading={updateExceptionStatusMutation.isPending}
             />
