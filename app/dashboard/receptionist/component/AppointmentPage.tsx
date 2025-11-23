@@ -1,20 +1,20 @@
 "use client";
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import AppointmentBooking from './AppointmentBooking';
 
 interface AppointmentPageProps {
   clientId: string;
   personnelId: string;
+  onClose?: () => void; 
 }
 
 const AppointmentPage: React.FC<AppointmentPageProps> = ({ 
   clientId, 
-  personnelId 
+  personnelId ,
+  onClose 
 }) => {
-  const handleBookingSuccess = (appointment: any) => {
-    console.log('Appointment booked successfully:', appointment);
-    // You can add additional logic here like showing a toast, redirecting, etc.
-  };
+  const router = useRouter();
 
   return (
     <div className="py-8">
@@ -27,17 +27,15 @@ const AppointmentPage: React.FC<AppointmentPageProps> = ({
             </p>
           </div>          
           <AppointmentBooking 
-            onBookingSuccess={handleBookingSuccess}
             clientId={clientId}
             personnelId={personnelId}
           />
         </div>
         
-        {/* Additional Information */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-gray-900 mb-2">📍 Location</h3>
-            <p className="text-sm text-gray-600">Weliness Center, Calgary, Alberta, Canada</p>
+            <p className="text-sm text-gray-600">Weliness Center, Calgary, Alberta, Canada</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-semibold text-gray-900 mb-2">⏰ Duration</h3>

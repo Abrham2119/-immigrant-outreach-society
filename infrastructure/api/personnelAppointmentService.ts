@@ -1,22 +1,28 @@
-import { AppointmentsListResponse, AppointmentResponse } from "@/domain/entities/appointmentPersonnel";
+import { AppointmentsListResponse } from "@/domain/entities/appointmentPersonnel";
 import api from "@/infrastructure/api/axios";
 
-export async function getPersonnelAppointmentsApi(
+export const getPersonnelAppointmentsApi = async (
   personnelId: string,
-  status: string = 'booked'
-): Promise<AppointmentsListResponse> {
-  const { data } = await api.get<AppointmentResponse[]>(`/appointments/personnel/${personnelId}?status=${status}`);
+  status: string = 'booked',
+  page: number = 1,
+  limit: number = 8,
+  search: string = ''
+): Promise<AppointmentsListResponse> => {
+  const params = new URLSearchParams({
+    status,
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(search && { search })
+  });
   
-  return {
-    data: data,
-    total: data.length
-  };
-}
+  const { data } = await api.get<AppointmentsListResponse>(`/appointments/personnel/${personnelId}?${params}`);  
+  return data;
+};
 
-export async function updatePersonnelAppointmentStatusApi(
+export const updatePersonnelAppointmentStatusApi = async (
   appointmentId: string, 
   statusData: { status: string; remark?: string }
-): Promise<{ message: string }> {
-  const { data } = await api.patch(`/appointments/${appointmentId}/status`, statusData);
+): Promise<{ message: string }> => {
+  const { data } = await api.patch(`/status/${appointmentId}`, statusData);
   return data;
-}
+};

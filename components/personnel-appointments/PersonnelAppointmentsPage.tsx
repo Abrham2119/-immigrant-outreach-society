@@ -1,11 +1,15 @@
 "use client";
 import { usePersonnelAppointmentManagement } from '@/application/hooks/usePersonnelAppointments';
+import { assessmentForms } from '@/domain/constants/assessmentForms';
+import { AssessmentFormType } from '@/domain/constants/AssessmentFormType';
 import { AppointmentResponse, AppointmentStatus } from '@/domain/entities/appointmentPersonnel';
-import { Eye, User, FileText } from 'lucide-react';
-import { useState } from 'react';
+import { Eye, FileText, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import ModalComponent from '../ui/modal/Modal';
 import { PersonnelAppointmentDetails } from './PersonnelAppointmentDetails';
+import { ClientFormsHistory } from './ClientFormsHistory';
+import { Pagination } from '@/components/client/Pagination';
 
 const statusColors = {
   booked: "bg-blue-100 text-blue-800",
@@ -21,21 +25,13 @@ interface PersonnelAppointmentsPageProps {
   onStatusChange?: (status: AppointmentStatus) => void;
 }
 
-// Assessment form options with slugs for routing
-const assessmentForms = [
-  { id: 'contact-note', title: 'Contact Note', slug: 'contact-note' },        
-  { id: 'discharge-summary', title: 'Discharge Summary', slug: 'discharge-summary' },  
-  { id: 'general-intake', title: 'General Intake Form', slug: 'general-intake' },  
-  { id: 'group-contact-note', title: 'Group Contact Note', slug: 'group-contact-note' },  
-  { id: 'intake-assessment', title: 'Intake Assessment', slug: 'intake-assessment' },  
-  { id: 'psychosocial-intervention', title: 'Psychosocial Intervention Plan', slug: 'psychosocial-intervention' },  
-  { id: 'psychosocial-intake', title: 'Psychosocial Intake Assessment', slug: 'psychosocial-intake' }, 
-];
-
-export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps> = ({ 
-  selectedStatus: externalStatus, 
-  onStatusChange 
+export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps> = ({
+  selectedStatus: externalStatus,
+  onStatusChange
 }) => {
+  const [search, setSearch] = useState<string>("");
+  const [pageNum, setPageNum] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(8);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentResponse | null>(null);
@@ -45,15 +41,30 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   const router = useRouter();
 
   const { personnelId, usePersonnelAppointments, useUpdateAppointmentStatus } = usePersonnelAppointmentManagement();
-  
+
   const { data: appointmentsData, isLoading, error } = usePersonnelAppointments({
     personnelId: personnelId!,
-    status: 'booked'
+    status: 'booked',
+    page: pageNum,
+    limit: pageSize,
+    search: search
   });
-  
+
   const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
   const appointments = appointmentsData?.data || [];
+  const totalPages = appointmentsData?.meta?.totalPages || 1;
+  const totalCount = appointmentsData?.meta?.total || 0;
+  const currentCount = appointmentsData?.meta?.count || 0;
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPageNum(1);
+  };
+
+  const handlePagination = (page: number) => {
+    setPageNum(page);
+  };
 
   const openModal = (appointment: AppointmentResponse) => {
     setSelectedAppointment(appointment);
@@ -68,7 +79,6 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   const openAssessmentModal = (appointment: AppointmentResponse) => {
     setSelectedAppointmentForAssessment(appointment);
-    console.log("Selected appointment for assessment:", appointment);
     setIsAssessmentModalOpen(true);
   };
 
@@ -79,7 +89,6 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   const handleFormSelect = (formSlug: string) => {
     if (selectedAppointmentForAssessment && personnelId) {
-      // Navigate to the form page with all required parameters
       const formPath = `/dashboard/personnel/Wellness/assessment/${selectedAppointmentForAssessment.client._id}/${formSlug}`;
       router.push(formPath);
     }
@@ -91,9 +100,9 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     try {
       await updateAppointmentStatusMutation.mutateAsync({
         appointmentId,
-        statusData: { 
+        statusData: {
           status: newStatus,
-          ...(remark && { remark }) 
+          ...(remark && { remark })
         }
       });
       setRemark('');
@@ -104,7 +113,6 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     }
   };
 
-  // Format date for display
   const formatDisplayDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
@@ -113,7 +121,6 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     });
   };
 
-  // Format time for display
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
@@ -122,15 +129,13 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     return `${displayHour}:${minutes} ${period}`;
   };
 
-  // Status dropdown component for each row
   const StatusDropdown = ({ appointment }: { appointment: AppointmentResponse }) => (
     <select
       value={appointment.status}
       onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
       disabled={statusUpdateLoading === appointment._id}
-      className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${
-        statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
-      } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
+      className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+        } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
     >
       <option value="booked">Booked</option>
       <option value="arrived">Arrived</option>
@@ -169,13 +174,24 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
-        {/* Header */}
+       
+
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">My Appointments</h1>
           <p className="text-gray-600">Manage your scheduled appointments</p>
         </div>
+         <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-3">
+          <div className="flex border-[#000000]/50 border items-center rounded-[10px] md:w-[531px] h-[34px]">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              placeholder="Search appointments..."
+              className="outline-none placeholder:text-[16px] px-2 w-full"
+            />
+          </div>
+        </div>
 
-        {/* Appointments Table */}
         <div className="overflow-x-auto border border-[#71717180]/50 min-h-[60vh] text-[#555555]">
           <table className="w-full text-sm min-w-[800px]">
             <thead>
@@ -288,6 +304,10 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                         </div>
                       </button>
+                      <ClientFormsHistory
+                        clientId={appointment.client._id}
+                        clientName={`${appointment.client.firstName} ${appointment.client.lastName}`}
+                      />
                     </td>
                   </tr>
                 ))
@@ -295,20 +315,28 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
             </tbody>
           </table>
         </div>
+
+        {appointmentsData && totalCount > 0 && (
+          <div className="mt-6">
+            <Pagination
+              pageNum={pageNum}
+              totalPages={totalPages}
+              onPageChange={handlePagination}
+            />
+          </div>
+        )}
       </div>
 
-      {/* Appointment Details Modal */}
       <ModalComponent isOpen={isModalOpen} onClose={closeModal}>
         {selectedAppointment && <PersonnelAppointmentDetails appointment={selectedAppointment} />}
       </ModalComponent>
 
-      {/* Assessment Forms Modal */}
       <ModalComponent isOpen={isAssessmentModalOpen} onClose={closeAssessmentModal}>
         <div className="w-full max-w-md p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Assessment Forms</h2>
-          
+
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
-            {assessmentForms.map((form) => (
+            {assessmentForms.map((form: AssessmentFormType) => (
               <button
                 key={form.id}
                 onClick={() => handleFormSelect(form.slug)}

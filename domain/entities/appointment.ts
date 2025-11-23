@@ -51,7 +51,7 @@ export interface Exception {
   _id?: string;
   personnel: string | null;
   date: string;
-  type: 'holiday' | 'personal' | 'emergency' | 'booked';
+  type: 'holiday' | 'leave' 
   reason: string;
   startTime?: string;
   endTime?: string;
@@ -80,6 +80,7 @@ export interface BookAppointmentRequest {
 }
 
 export interface BookAppointmentResponse {
+  success: any;
   message: string;
   populatedAppointment: Appointment;
 }

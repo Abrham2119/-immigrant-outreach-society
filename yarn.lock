@@ -55,6 +55,11 @@
     preact "10.11.3"
     preact-render-to-string "5.2.3"
 
+"@babel/runtime@^7.17.9":
+  version "7.28.4"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.28.4.tgz#a70226016fabe25c5783b2f22d3e1c9bc5ca3326"
+  integrity sha512-Q/N6JNWvIvPnLDvjlE1OUBLPQHH6l3CltCEsHIujp45zQUSSh8K+gHnaEX45yAT1nyngnINhvWtzN+Nb9D8RAQ==
+
 "@discoveryjs/json-ext@0.5.7":
   version "0.5.7"
   resolved "https://registry.npmjs.org/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz"
@@ -860,6 +865,76 @@
   dependencies:
     tslib "^2.8.0"
 
+"@syncfusion/ej2-base@23.1.43", "@syncfusion/ej2-base@~23.1.41":
+  version "23.1.43"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-base/-/ej2-base-23.1.43.tgz#6081b7d9b840dad89a4e3b39db705a82569160ee"
+  integrity sha512-jPVHiKxM2taDx8t03O1zvfGwjEyKTQDdiL79Dgco0E3oGAh4wLfXQpSM8kwEAyhpPBYZ/orRjoifQ9hcUYEg2w==
+  dependencies:
+    "@syncfusion/ej2-icons" "~23.1.36"
+
+"@syncfusion/ej2-buttons@23.1.43", "@syncfusion/ej2-buttons@~23.1.43":
+  version "23.1.43"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-buttons/-/ej2-buttons-23.1.43.tgz#969468cd03ec1ae8bd35fd2d4bbd2167553ea7b9"
+  integrity sha512-Jg1cC/2o6ds+xDwQSlAF7cEYP4O4C9wojKFllcVvZTwTKWVxZ2KfYeAFM1kV1GR/WuJd+TmvNhwkvmkWz8UgQw==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+
+"@syncfusion/ej2-icons@~23.1.36":
+  version "23.1.36"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-icons/-/ej2-icons-23.1.36.tgz#dd01f70115f80c8b6c1bacef6b9bc217ef9fc75a"
+  integrity sha512-Q7S50bOzXL9X46doNIGSGr61RCY/1RW9iz1U7yyARr2XBQhWnijk+t/FVBk1piR0nioRXbKQcPZOLiEo6zf1xw==
+
+"@syncfusion/ej2-inputs@23.1.43":
+  version "23.1.43"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-inputs/-/ej2-inputs-23.1.43.tgz#4d8bb5a2a3f936e345f02b6173f2d1c230d32871"
+  integrity sha512-G4HhneF2HXe6Tcig5pDlTaEgR46vQJgshcEym6WEVm0G39xiUSR5NIvyvS54IldGRyWwoyWEucbpM1kWGJC+7g==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+    "@syncfusion/ej2-buttons" "~23.1.43"
+    "@syncfusion/ej2-popups" "~23.1.43"
+    "@syncfusion/ej2-splitbuttons" "~23.1.43"
+
+"@syncfusion/ej2-popups@~23.1.43":
+  version "23.1.45"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-popups/-/ej2-popups-23.1.45.tgz#cf486aedddf74f121836de1e5643b32fb6d5d64a"
+  integrity sha512-cvcTd2/B0n+HpE9H9m8GCA7MS/ornMyPLTghCZk1Esc2NOI7z+APk8FymA1cmxqjzmbiWSCe3TKvLEPib4Ff7w==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+    "@syncfusion/ej2-buttons" "~23.1.43"
+
+"@syncfusion/ej2-react-base@~23.1.43":
+  version "23.1.44"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-react-base/-/ej2-react-base-23.1.44.tgz#7c60360fb5f8734869962e7335068e0fa8e6249d"
+  integrity sha512-Yx+6m+GfsddBTSEqZs8A1+t3EUqWgCNwhc0t+hsBXCfKOv6TrrJTzvsDIFOmkmk2VRCmDub5ZYpC9ItD99L7sg==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+
+"@syncfusion/ej2-react-buttons@23.1.43":
+  version "23.1.43"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-react-buttons/-/ej2-react-buttons-23.1.43.tgz#8ac0a5820506eac9180df783c0a38e052e146657"
+  integrity sha512-8rG1UoF5BU81jo+eUgNEP+D+pwu5LklRrZhl+2NxP9HLEMxkNMacm/fHq8H/2RVJRc+BkTp4fRTMb8ndHe/5Rw==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+    "@syncfusion/ej2-buttons" "23.1.43"
+    "@syncfusion/ej2-react-base" "~23.1.43"
+
+"@syncfusion/ej2-react-inputs@23.1.43":
+  version "23.1.43"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-react-inputs/-/ej2-react-inputs-23.1.43.tgz#d5fc16c4e8eb77383bcd56b0b209c1bf6ba41421"
+  integrity sha512-kBRSLATpM939hXB20ZDsG5hMt5kkD+Ryys6XOS37L8iYZ3Miyf5+UNx5J30Gs3yi+pQ82+nmuuWlwsy9YKP92Q==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+    "@syncfusion/ej2-inputs" "23.1.43"
+    "@syncfusion/ej2-react-base" "~23.1.43"
+
+"@syncfusion/ej2-splitbuttons@~23.1.43":
+  version "23.1.43"
+  resolved "https://registry.yarnpkg.com/@syncfusion/ej2-splitbuttons/-/ej2-splitbuttons-23.1.43.tgz#2c7954cb9d5743f3d0445cba7e7d04126515a6f8"
+  integrity sha512-NbT5XMCU87QPRr4svcEn/zEwIFAmwZiAYYLz2WjiuKVOnFw6htAKT81FF7X4CLl4HN0o1S7w09N9r5HQxv3mgQ==
+  dependencies:
+    "@syncfusion/ej2-base" "~23.1.41"
+    "@syncfusion/ej2-popups" "~23.1.43"
+
 "@tailwindcss/node@4.1.13":
   version "4.1.13"
   resolved "https://registry.npmjs.org/@tailwindcss/node/-/node-4.1.13.tgz"
@@ -1297,6 +1372,11 @@
   version "1.20.2"
   resolved "https://registry.yarnpkg.com/@types/resolve/-/resolve-1.20.2.tgz#97d26e00cd4a0423b4af620abecf3e6f442b7975"
   integrity sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==
+
+"@types/signature_pad@^2.3.0":
+  version "2.3.6"
+  resolved "https://registry.yarnpkg.com/@types/signature_pad/-/signature_pad-2.3.6.tgz#8bbd6c8b763d7e2d2f10b95bc3ddab62557a4869"
+  integrity sha512-v3j92gCQJoxomHhd+yaG4Vsf8tRS/XbzWKqDv85UsqjMGy4zhokuwKe4b6vhbgncKkh+thF+gpz6+fypTtnFqQ==
 
 "@types/use-sync-external-store@^0.0.6":
   version "0.0.6"
@@ -4323,6 +4403,16 @@ react-remove-scroll@^2.6.3:
     use-callback-ref "^1.3.3"
     use-sidecar "^1.1.3"
 
+react-signature-canvas@^1.1.0-alpha.2:
+  version "1.1.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/react-signature-canvas/-/react-signature-canvas-1.1.0-alpha.2.tgz#75af8eb8acc0d827c250784229bdc9a55244b50e"
+  integrity sha512-tKUNk3Gmh04Ug4K8p5g8Is08BFUKvbXxi0PyetQ/f8OgCBzcx4vqNf9+OArY/TdNdfHtswXQNRwZD6tyELjkjQ==
+  dependencies:
+    "@babel/runtime" "^7.17.9"
+    "@types/signature_pad" "^2.3.0"
+    signature_pad "^2.3.2"
+    trim-canvas "^0.1.0"
+
 react-style-singleton@^2.2.2, react-style-singleton@^2.2.3:
   version "2.2.3"
   resolved "https://registry.npmjs.org/react-style-singleton/-/react-style-singleton-2.2.3.tgz"
@@ -4670,6 +4760,11 @@ side-channel@^1.1.0:
     side-channel-map "^1.0.1"
     side-channel-weakmap "^1.0.2"
 
+signature_pad@^2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/signature_pad/-/signature_pad-2.3.2.tgz#ca7230021c89cedeead27b33d8d16ff254e5f04a"
+  integrity sha512-peYXLxOsIY6MES2TrRLDiNg2T++8gGbpP2yaC+6Ohtxr+a2dzoaqWosWDY9sWqTAAk6E/TyQO+LJw9zQwyu5kA==
+
 sirv@^2.0.3:
   version "2.0.4"
   resolved "https://registry.npmjs.org/sirv/-/sirv-2.0.4.tgz"
@@ -4949,6 +5044,11 @@ tr46@~0.0.3:
   version "0.0.3"
   resolved "https://registry.npmjs.org/tr46/-/tr46-0.0.3.tgz"
   integrity sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==
+
+trim-canvas@^0.1.0:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/trim-canvas/-/trim-canvas-0.1.2.tgz#620457f5fecf564b521d35c5fcd4da58304d6e45"
+  integrity sha512-nd4Ga3iLFV94mdhW9JFMLpQbHUyCQuhFOD71PEAt1NjtMD5wbZctzhX8c3agHNybMR5zXD1XTGoIEWk995E6pQ==
 
 ts-api-utils@^2.0.1, ts-api-utils@^2.1.0:
   version "2.1.0"

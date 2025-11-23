@@ -1,13 +1,11 @@
+import axios from "axios";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { getErrorMessage } from "./lib/utils/getErrorMessage";
-import { AxiosErrorResponse } from "./lib/utils/AxiosErrorResponse";
-import axios from "axios";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-// Define valid roles
-const validRoles = ["PCO", "Wellness", "IOCR", "Settlement", "Psychosocial", "Youth", "SALP", "GBV", "Training", "Policy", "receptionist", "Admin"];
+// Define valid roles - UPDATED with Personnel Admin
+const validRoles = ["PCO", "Wellness", "IOCR", "Settlement", "Psychosocial", "Youth", "SALP", "GBV", "Training", "Policy", "receptionist", "Admin", "Personnel Admin"];
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -17,54 +15,56 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
       },
 
-      async authorize(credentials) {
-        try {
-          const res = await axios.post(
-            `${BASE_URL}/auth/login`,
-            {
-              password: credentials?.password,
-              email: credentials?.email,
-            },
-          );
-
-          if (res.data && res.data.success) {
-            const userData = res.data.user;
-            const tokens = res.data;
-
-            console.log("this is the response data ", res.data);
-
-            // Validate role
-            const userRole = userData.role || "";
-            if (!validRoles.includes(userRole)) {
-              throw new Error("Invalid user role");
-            }
-
-            // Return user object with proper typing
-            return {
-              id: userData._id || "",
-              firstName: userData.firstName || "",
-              lastName: userData.lastName || "",
-              email: userData.email || "",
-              role: userRole,
-              accessToken: tokens.accessToken || "",
-              refreshToken: tokens.refreshToken || "",
-            };
-          }
-        } catch (error: any) {
-          const errorMessage =
-            getErrorMessage({ message: error as AxiosErrorResponse }) ??
-            "Login failed. Please try again.";
-          
-          // Remove toast.error as it cannot be used on server side
-          console.error(`Login Error: ${errorMessage}`);
-          
-          throw new Error(
-            error?.response?.data?.message ?? "Incorrect email or password"
-          );
-        }
-
-        return null;
+    async authorize(credentials) {
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/auth/login`,
+      {
+        password: credentials?.password,
+        email: credentials?.email,
       },
+    );
+
+    console.log("API Response:", res.data);
+
+    if (res.data && res.data.success) {
+      const userData = res.data.user;
+      const tokens = res.data;
+
+      // Validate role - update to match API response
+      const validRoles = ["PCO", "Wellness", "IOCR", "Settlement", "Psychosocial", "Youth", "SALP", "GBV", "Training", "Policy", "Receptionist", "Admin", "Personnel Admin"];
+      const userRole = userData.role || "";
+      
+      if (!validRoles.includes(userRole)) {
+        console.error("Invalid role:", userRole);
+        throw new Error("Invalid user role");
+      }
+
+      // Return user object - THIS MUST BE RETURNED
+      return {
+        id: userData._id || "",
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        email: userData.email || "",
+        role: userRole,
+        accessToken: tokens.accessToken || "",
+        refreshToken: tokens.refreshToken || "",
+      };
+    } else {
+      // Handle case where success is false
+      throw new Error(res.data?.message || "Login failed");
+    }
+  } catch (error: any) {
+    console.error("Login error details:", error.response?.data || error.message);
+    
+    // Provide more specific error messages
+    const errorMessage = error?.response?.data?.message || 
+                        error?.message || 
+                        "Login failed. Please try again.";
+    
+    throw new Error(errorMessage);
+  }
+},
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,

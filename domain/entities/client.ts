@@ -13,6 +13,7 @@ export interface Client {
   message?: string;
   services: string[];
   status: string;
+  consent?:boolean
   registeredBy: string | null;
   createdAt: string;
   updatedAt: string;  
@@ -22,9 +23,6 @@ export interface ClientGetByID{
   client:Client
   success: boolean;
 }
-
-
-
 export interface ClientsResponse {
   success: boolean;
   count: number;
@@ -33,11 +31,9 @@ export interface ClientsResponse {
   pages: number;
   clients: Client[];
 }
-
 export interface StatusUpdateRequest {
   status: string;
 }
-
 export interface StatusUpdateResponse {
   status: string;
 }

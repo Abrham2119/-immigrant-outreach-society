@@ -53,6 +53,7 @@ export interface PsychosocialIntakeFormPayload {
   client: string;
   personnel: string;
   service: string;
+  title:string
   formData: {
     client_name?: string;
     date_of_assessment?: string;

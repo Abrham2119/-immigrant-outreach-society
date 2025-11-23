@@ -3,9 +3,12 @@ import { getPersonnelAppointmentsApi, updatePersonnelAppointmentStatusApi } from
 
 export const getPersonnelAppointmentsUseCase = async (
   personnelId: string,
-  status: string = 'booked'
+  status: string = 'booked',
+  page: number = 1,
+  limit: number = 8,
+  search: string = ''
 ): Promise<AppointmentsListResponse> => {
-  return getPersonnelAppointmentsApi(personnelId, status);
+  return getPersonnelAppointmentsApi(personnelId, status, page, limit, search);
 };
 
 export const updatePersonnelAppointmentStatusUseCase = async (

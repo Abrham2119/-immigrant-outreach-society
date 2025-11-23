@@ -1,18 +1,8 @@
-// infrastructure/api/formService.ts
+import { FormsResponse } from '@/domain/entities/form';
+import { FormResponseId } from '@/domain/entities/formId';
 import api from './axios';
-import { Form, FormsResponse, FormResponse } from '@/domain/entities/form';
 
-// Get forms with pagination and filters
-export async function getFormsUseCase(
-  page: number = 1,
-  pageSize: number = 10,
-  search: string = '',
-  service: string = 'all'
-): Promise<FormsResponse> {
-  return getFormsApi(page, pageSize, search, service);
-}
-
-export const getFormsApi = async (
+export const getFormsUseCase = async (
   page: number = 1,
   pageSize: number = 10,
   search: string = '',
@@ -24,27 +14,16 @@ export const getFormsApi = async (
     ...(search && { search }),
     ...(service !== 'all' && { service })
   });
-
   const { data } = await api.get(`/forms?${params}`);
   return data;
 };
 
-// Get form by ID
-export const getFormByIdApi = async (formId: string): Promise<FormResponseId> => {
-  const { data } = await api.get(`/forms/client/${formId}`);
+export const getFormByIdUseCase = async (formId: string): Promise<FormResponseId> => {
+  const { data } = await api.get(`/forms/${formId}`);
   return data;
 };
 
-export async function getFormByIdUseCase(formId: string): Promise<FormResponseId> {
-  return getFormByIdApi(formId);
-}
-
-// Get forms by client ID
-export const getFormsByClientIdApi = async (clientId: string): Promise<FormsResponse> => {
+export const getFormsByClientIdUseCase = async (clientId: string): Promise<FormsResponse> => {
   const { data } = await api.get(`/forms/client/${clientId}`);
   return data;
 };
-
-export async function getFormsByClientIdUseCase(clientId: string): Promise<FormsResponse> {
-  return getFormsByClientIdApi(clientId);
-}

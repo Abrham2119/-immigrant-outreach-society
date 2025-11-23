@@ -5,6 +5,7 @@ import { useSubmitPsychosocialIntake } from "@/application/hooks/useSubmitPsycho
 import { Button } from "@/components/ui/Button/Button";
 import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
+import { assessmentForms } from "@/domain/constants/assessmentForms";
 import { PsychosocialIntakeFormPayload } from "@/domain/entities/assesments/psychosocialIntake";
 import {
   psychosocialIntakeSchema,
@@ -106,6 +107,7 @@ export default function PsychosocialIntakeForm() {
       client: clientId || "",
       personnel: session?.user?.id ?? "",
       service: session?.user?.role ?? "",
+      title: assessmentForms[6].id,
       formData: {
         client_name: data.clientName,
         date_of_assessment: data.dateOfAssessment,
@@ -336,8 +338,7 @@ export default function PsychosocialIntakeForm() {
         />
       </div>
 
-      {/* Consent Section */}
-      <div className="border-b pb-4">
+      {/* <div className="border-b pb-4">
         <h3 className="text-lg font-semibold mb-4">Consent and Acknowledgments</h3>
 
         <div className="space-y-3">
@@ -365,7 +366,7 @@ export default function PsychosocialIntakeForm() {
             </label>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Assessor Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

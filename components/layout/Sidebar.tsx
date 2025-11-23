@@ -14,7 +14,6 @@ interface SidebarProps {
   userRole?: string;
 }
 
-// Role to base path mapping
 const roleBasePaths: Record<string, string> = {
   PCO: "/dashboard/personnel/PCO",
   Wellness: "/dashboard/personnel/Wellness",
@@ -26,22 +25,30 @@ const roleBasePaths: Record<string, string> = {
   GBV: "/dashboard/personnel/GBV",
   Training: "/dashboard/personnel/Training",
   Policy: "/dashboard/personnel/Policy",
-  receptionist: "/dashboard/receptionist",
+  Receptionist: "/dashboard/receptionist",
   Admin: "/dashboard/admin",
+  "Personnel Admin": "/dashboard/PersonnelAdmin",
 };
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-
-// Navigation items for personnel roles (PCO, Wellness, IOCR, etc.)
 const personnelNavItems = [
   { href: "/", label: "Dashboard" },
   { href: "/schedule", label: "Schedule" },
   { href: "/schedule/exeption", label: "Schedule exeption" },
   { href: "/clients", label: "Clients" },
+  { href: "/my-client-history", label: "My Client History" },
   { href: "/assessment-history", label: "Assessment History" },
 ];
 
-// Navigation items for receptionist role
+const personnelAdminNavItems = [
+  { href: "/", label: "Dashboard" },
+  { href: "/schedule", label: "Schedule" },
+  { href: "/schedule/exeption", label: "Schedule exeption" },
+  { href: "/clients", label: "Clients" },
+  { href: "/my-client-history", label: "My Client History" },
+  { href: "/assessment-history", label: "Assessment History" },
+];
+
 const receptionistNavItems = [
   { href: "/", label: "Dashboard" },
   { href: "/clients", label: "Clients" },
@@ -49,7 +56,11 @@ const receptionistNavItems = [
   { href: "/booked-appointment", label: "Booked Appointment" },
 ];
 
-// Default navigation items for other roles (Admin, etc.)
+const adminNavItems = [
+  { href: "/", label: "Dashboard" },
+  { href: "/exeptions", label: "Exceptions" },
+];
+
 const defaultNavItems = [
   { href: "/dashboard", label: "Dashboard" },
 ];
@@ -57,10 +68,8 @@ const defaultNavItems = [
 export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
   const pathname = usePathname();
   const translatedText = useTranslatedText();
-    const { data: session } = useSession();
-  
+  const { data: session } = useSession();
 
-  // Get the appropriate navigation items based on user role
   const getNavItems = () => {
     if (!userRole) return defaultNavItems;
 
@@ -68,8 +77,21 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
 
     if (!basePath) return defaultNavItems;
 
-    // Check if it's a personnel role (excluding receptionist)
-    const isPersonnelRole = userRole !== "receptionist" && userRole in roleBasePaths;
+    const isPersonnelRole = userRole !== "Receptionist" && userRole in roleBasePaths;
+
+    if (userRole === "Personnel Admin") {
+      return personnelAdminNavItems.map(item => ({
+        ...item,
+        href: `${basePath}${item.href}`
+      }));
+    }
+
+    if (userRole === "Admin") {
+      return adminNavItems.map(item => ({
+        ...item,
+        href: `${basePath}${item.href}`
+      }));
+    }
 
     if (isPersonnelRole) {
       return personnelNavItems.map(item => ({
@@ -78,7 +100,7 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
       }));
     }
 
-    if (userRole === "receptionist") {
+    if (userRole === "Receptionist") {
       return receptionistNavItems.map(item => ({
         ...item,
         href: `${basePath}${item.href}`
@@ -90,10 +112,9 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
       href: `${basePath}${item.href}`
     }));
   };
-
   const navItems = getNavItems();
 
- const handleLogout = async () => {
+  const handleLogout = async () => {
 
     console.log("logout")
 
@@ -117,17 +138,15 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
       );
 
       console.log("Logout API response:", response.data);
-      await signOut({ redirect: false});
+      await signOut({ redirect: false });
       window.location.href = '/';
     } catch (error) {
       console.error('Logout failed:', error);
       window.location.href = '/';
-      // Check if the error is from Axios
       if (axios.isAxiosError(error)) {
         console.error('Response data:', error.response?.data);
         console.error('Status code:', error.response?.status);
 
-        // If token is invalid, proceed with client-side signout anyway
         if (error.response?.status === 403 || error.response?.status === 401) {
           console.log("Proceeding with client-side logout despite API failure");
           await signOut({ redirect: false });
@@ -140,7 +159,6 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
     }
   };
   const handleSettings = () => {
-    // Add your settings navigation logic here
     console.log("Navigating to settings...");
     closeMenu();
   };
@@ -148,11 +166,11 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
   return (
     <>
       <div
-    className={`
+        className={`
   fixed top-0 left-0 left-nav overflow-hidden border-r bg-white border-gray-300 p-4
   w-50
   transform
-  h-[calc(100vh-58px)]  // Changed from  
+  h-[calc(100vh-58px)]
   transition-transform duration-300 ease-in-out
   md:sticky md:top-[58px] md:translate-x-0 md:w-[296px]   
   ${isOpen ? "translate-x-0" : "-translate-x-full"}
@@ -165,7 +183,6 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
             {translatedText?.sidebarLogoText || "HabariDoc"}
           </div>
 
-          {/* Close button for mobile */}
           <button
             className=" self-end mb-4 p-1 rounded-md hover:bg-gray-200 cursor-pointer"
             onClick={closeMenu}
@@ -176,18 +193,16 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
             <X size={24} />
           </button>
         </div>
-        
-        {/* Main Navigation */}
+
         <nav className="flex flex-col space-y-2 flex-grow">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`whitespace-nowrap px-3 py-2 rounded text-[#555555] text-base hover:bg-blue-700 hover:text-white ${
-                pathname === item.href
-                  ? "bg-blue-600 font-medium text-white "
-                  : ""
-              }`}
+              className={`whitespace-nowrap px-3 py-2 rounded text-[#555555] text-base hover:bg-blue-700 hover:text-white ${pathname === item.href
+                ? "bg-blue-600 font-medium text-white "
+                : ""
+                }`}
               onClick={closeMenu}
             >
               {item.label}
@@ -195,9 +210,7 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Bottom Section - Logout and Settings */}
         <div className="mt-auto pt-4 border-t border-gray-200">
-          {/* Settings Button */}
           <button
             onClick={handleSettings}
             className="flex items-center gap-3 w-full whitespace-nowrap px-3 py-2 rounded text-[#555555] text-base hover:bg-gray-100 transition-colors"
@@ -205,8 +218,7 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
             <Settings size={18} />
             Settings
           </button>
-          
-          {/* Logout Button */}
+
           <button
             onClick={handleLogout}
             className="flex items-center gap-3 w-full whitespace-nowrap px-3 py-2 rounded text-red-600 text-base hover:bg-red-50 transition-colors"
@@ -217,7 +229,6 @@ export default function Sidebar({ isOpen, closeMenu, userRole }: SidebarProps) {
         </div>
       </div>
 
-      {/* Overlay when sidebar is open on mobile */}
       {isOpen && (
         <div
           className="fixed inset-0 z-30 md:hidden"

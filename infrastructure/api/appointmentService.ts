@@ -3,6 +3,8 @@ import axios from "axios";
 import api from "./axios";
 import { Appointment, Exception, Rule } from "@/domain/entities/appointment";
 
+
+
 export const getAppointmentsUseCase = async () => {
   const { data } = await api.get(`/appointments`);
   return data;
@@ -33,51 +35,49 @@ export const cancelAppointmentUseCase = async (id: string) => {
   return data;
 };
 
-export const getRulesUseCase = async () => {
-  const { data } = await api.get(`/rules`);
-  return data;
+// Rules API functions
+export const getRulesUseCase = async (personnelId?: string): Promise<Rule[]> => {
+  const { data } = await api.get(`/rules${personnelId ? `?personnelId=${personnelId}` : ''}`);
+  return data.data; // Return data.data to match your API response structure
 };
 
-// Rename this to avoid conflict
-export const createRuleApi = async (rule: Rule) => {
+export const getRuleByIdUseCase = async (ruleId: string): Promise<Rule> => {
+  const { data } = await api.get(`/rules/${ruleId}`);
+  return data.data;
+};
+
+export const createRuleUseCase = async (rule: Rule): Promise<Rule> => {
   const { data } = await api.post(`/rules`, rule);
+  return data.data;
+};
+
+export const updateRuleUseCase = async (ruleId: string, rule: Rule): Promise<Rule> => {
+  const { data } = await api.put(`/rules/${ruleId}`, rule);
+  return data.data;
+};
+
+export const deleteRuleUseCase = async (ruleId: string): Promise<{ message: string }> => {
+  const { data } = await api.delete(`/rules/${ruleId}`);
   return data;
 };
 
-export const getExceptionsUseCase = async (id: string | undefined) => {
-  const { data } = await api.get(`/exceptions`);
-  return data;
-};
-
-
-
-
-//exeptions 
-export async function createExceptionUseCase(exception: Exception): Promise<Exception> {
-  return createExceptionApi(exception);}
-
-// export async function getExceptionsUseCase(personnelId?: string): Promise<Exception[]> {
-//   return getExceptionsApi(personnelId);
-// }
-
-export async function deleteExceptionUseCase(exceptionId: string): Promise<{ message: string }> {
-  return deleteExceptionApi(exceptionId);
-}
-
-export const createExceptionApi = async (exception: Exception) => {
+// Exception API functions (keep as is)
+export const createExceptionUseCase = async (exception: Exception): Promise<Exception> => {
   const { data } = await api.post(`/exceptions`, exception);
   return data;
 };
 
-export const getExceptionsApi = async (personnelId?: string) => {
+export const getExceptionsUseCase = async (personnelId?: string): Promise<Exception[]> => {
   const { data } = await api.get(`/exceptions${personnelId ? `?personnelId=${personnelId}` : ''}`);
   return data;
 };
 
-export const deleteExceptionApi = async (exceptionId: string) => {
-  const { data } = await api.delete(`/exceptions/${exceptionId}`);
+export const updateExceptionUseCase = async (exceptionId: string, exception: Exception): Promise<Exception> => {
+  const { data } = await api.put(`/exceptions/${exceptionId}`, exception);
   return data;
 };
 
-
-
+export const deleteExceptionUseCase = async (exceptionId: string): Promise<{ message: string }> => {
+  const { data } = await api.delete(`/exceptions/${exceptionId}`);
+  return data;
+};

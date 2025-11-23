@@ -13,7 +13,7 @@ const LandingPage = () => {
   };  
 
   return (
-    <div className="flex bg-white items-center justify-center w-full px-4">
+    <div className="flex bg-white  items-center justify-center w-full px-4">
       <div className="min-h-screen flex flex-col items-center justify-center lg:px-6 md:px-4 px-2">
         <div className="w-full flex flex-col items-center text-center">
           <div className="w-[390px] h-[247px] mb-6 flex items-center justify-center rounded-lg overflow-hidden">

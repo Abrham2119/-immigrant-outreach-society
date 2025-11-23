@@ -1,14 +1,14 @@
 import { Metadata } from "next";
-import { Montserrat } from "next/font/google";
+// import { Montserrat } from "next/font/google";
 import "../styles/globals.css";
 import QueryProvider from "@/components/providers/QueryProvider";
 import AuthProvider from "@/components/providers/AuthProvider";
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  variable: "--font-montserrat",
-  display: "swap",
-});
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   variable: "--font-montserrat",
+//   display: "swap",
+// });
 
 export const metadata: Metadata = {
   title: "Canada imigiration support",
@@ -25,7 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html  lang="en" suppressHydrationWarning >
-      <body className={`antialiased bg-white`}>
+      <body className={`antialiased bg-white`} cz-shortcut-listen="true" >
         <QueryProvider>
           <AuthProvider>         
             <div className="bg-white text-black">{children}</div>

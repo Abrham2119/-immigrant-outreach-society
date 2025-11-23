@@ -32,9 +32,10 @@ export interface PsychosocialInterventionResponse {
 
 
 export interface PsychosocialInterventionFormPayload {
- client: string;
+  client: string;
   personnel: string;
   service: string;
+  title: string;
   formData: {
     data_entry_personnel_full_name?: string;
     client_name?: string;

@@ -1,4 +1,23 @@
-export type AppointmentStatus = "all" | "booked" | "arrived" | "with_personnel" | "completed" | "cancelled" | "no-show";
+export type AppointmentStatus =
+  | "all"
+  | "booked"
+  | "arrived"
+  | "with_personnel"
+  | "completed"
+  | "cancelled"
+  | "no-show";
+
+interface Meta {
+  total: number;
+  count: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+  nextPage: number | null;
+  prevPage: number | null;
+}
 
 export interface Client {
   _id: string;
@@ -15,6 +34,7 @@ export interface Client {
   message: string;
   services: string[];
   status: string;
+  consent: boolean;
   registeredBy: string | null;
   createdAt: string;
   updatedAt: string;
@@ -26,8 +46,8 @@ export interface Personnel {
   firstName: string;
   lastName: string;
   email: string;
-  role: string;
   password: string;
+  role: string;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -48,6 +68,8 @@ export interface AppointmentResponse {
 }
 
 export interface AppointmentsListResponse {
+  success: boolean;
+  message: string;
+  meta: Meta;
   data: AppointmentResponse[];
-  total: number;
 }

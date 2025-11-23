@@ -1,18 +1,19 @@
 "use client";
 import { Pagination } from '@/components/client/Pagination';
-import { useFormManagement } from '@/domain/use-cases/form';
-import { useQuery } from '@tanstack/react-query';
-import { Eye, FileText, User } from 'lucide-react';
+import ModalComponent from '@/components/ui/modal/Modal';
+import { useForms } from '@/domain/use-cases/form';
+import { Eye, User } from 'lucide-react';
 import { useState } from 'react';
 import { FormDetails } from './FormDetails';
-import ModalComponent from '@/components/ui/modal/Modal';
+import { ClientFormsHistory } from '@/components/personnel-appointments/ClientFormsHistory';
+
 
 
 // Service options
 const serviceOptions = [
   { label: 'All Services', value: 'all' },
   { label: 'PCO', value: 'PCO' },
-{ label: 'Wellness Intervention', value: 'Wellness' },
+  { label: 'Wellness Intervention', value: 'Wellness' },
   { label: 'IOCR', value: 'IOCR' },
   { label: 'Settlement', value: 'Settlement' },
   { label: 'Psychosocial', value: 'Psychosocial' },
@@ -44,8 +45,6 @@ export default function FormsPage() {
   const [service, setService] = useState<string>("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
-
-  const { useForms } = useFormManagement();
 
   const { data, isLoading, error } = useForms(pageNum, pageSize, search, service);
   console.log(data)
@@ -88,36 +87,43 @@ export default function FormsPage() {
     if (form.client) {
       return `${form.client.firstName} ${form.client.lastName}`;
     }
-    
+
     // Try to get name from formData
     if (form.formData.client_name) {
       return form.formData.client_name;
     }
-    
+
     if (form.formData['Referral Individual\'s Name']) {
       return form.formData['Referral Individual\'s Name'];
     }
-    
+
     return 'N/A';
   };
 
+
+  const formatFormTitle = (title: string | undefined): string => {
+    if (!title) return 'N/A';
+    return title
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
   // Function to get personnel display name
   const getPersonnelName = (form: any) => {
 
-    console.log(form,"this is personale name")
     if (form.personnel) {
       return `${form.personnel.firstName} ${form.personnel.lastName}`;
     }
-    
+
     // Try to get name from formData
     if (form.formData.data_entry_personnel_full_name) {
       return form.formData.data_entry_personnel_full_name;
     }
-    
+
     if (form.formData['Data Entry personnel full name']) {
       return form.formData['Data Entry personnel full name'];
     }
-    
+
     return 'N/A';
   };
 
@@ -179,6 +185,9 @@ export default function FormsPage() {
                   Personnel
                 </th>
                 <th className="text-center px-4 py-2 text-lg font-medium whitespace-nowrap">
+                  Title
+                </th>
+                <th className="text-center px-4 py-2 text-lg font-medium whitespace-nowrap">
                   Service
                 </th>
                 <th className="text-center px-4 py-2 text-lg font-medium whitespace-nowrap">
@@ -223,26 +232,34 @@ export default function FormsPage() {
                       {getPersonnelName(form)}
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        serviceColors[form.service as keyof typeof serviceColors] || "bg-gray-100 text-gray-800"
-                      }`}>
+                      {formatFormTitle(form.title)}
+                    </td>
+
+                    <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${serviceColors[form.service as keyof typeof serviceColors] || "bg-gray-100 text-gray-800"
+                        }`}>
                         {form.service}
                       </span>
                     </td>
+
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       {formatDate(form.createdAt)}
                     </td>
                     <td className="px-4 py-4 flex gap-2 items-center justify-center text-center font-medium">
-                     <button
-    onClick={() => form?.client?._id && openModal(form.client._id)}
-    className={`text-blue-600 hover:text-blue-800 transition-colors ${
-      !form?.client?._id ? 'opacity-50 cursor-not-allowed' : ''
-    }`}
-    title={form?.client?._id ? "View Client Details" : "No client data available"}
-    disabled={!form?.client?._id}
-  >
-    <Eye size={16} />
-  </button>
+                      <button
+                        onClick={() => form._id && openModal(form._id||"")}
+                        className={`text-blue-600 hover:text-blue-800 transition-colors ${!form._id ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
+                        title={form?._id ? "View Client Details" : "No client data available"}
+                        disabled={!form?._id}
+                      >
+                        <Eye size={16} />
+                      </button>
+                       <ClientFormsHistory
+                        clientId={form.client?._id || ""}
+                        clientName={`${form.client?.firstName} 
+                          ${form.client?.lastName}`}
+                      />
                     </td>
                   </tr>
                 ))

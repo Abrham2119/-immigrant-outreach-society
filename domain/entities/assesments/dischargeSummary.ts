@@ -1,23 +1,26 @@
+// domain/entities/assesments/dischargeSummary.ts
 export interface DischargeSummaryFormData {
-  future_consideration: string;
-  detail_check: string;
-  features: string[];
-  key_features: string[];
-  other_attributes: string[];
-  additional_information?: string;
-  documentation_status?: string;
-  acknowledgement_status: string;
-  output_status: string;
-  doctor_signature: string;
-  patient_consent: string;
-  discharge_date: string;
-  final_acknowledgement: boolean;
+  data_entry_personnel_name: string;
+  client_first_name: string;
+  client_last_name: string;
+  ios_staff_first_name: string;
+  ios_staff_last_name: string;
+  date_of_discharge: string;
+  goals_and_concerns: string;
+  summary_of_care_provided: string;
+  updated_risk_assessment?: string;
+  reason_for_discharge?: string;
+  recommendations_for_follow_up?: string;
+  acknowledgement_name: string;
+  acknowledgement_signature?: string;
+  date_completed: string;
 }
 
 export interface DischargeSummaryFormPayload {
-  patient: string;
-  doctor: string;
-  department: string;
+  client: string;
+  personnel: string;
+  service: string;
+  title: string;
   formData: DischargeSummaryFormData;
 }
 

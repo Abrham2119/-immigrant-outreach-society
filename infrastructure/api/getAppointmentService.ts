@@ -1,48 +1,38 @@
-import { Appointment, StatusUpdateRequest, StatusUpdateResponse } from '@/domain/entities/geAppointment';
+import { Appointment, AppointmentsResponse, StatusUpdateRequest, StatusUpdateResponse } from '@/domain/entities/geAppointment';
 import api from './axios';
 
-// Get all appointments
-export async function getAppointmentsUseCase(): Promise<Appointment[]> {
-  return getAppointmentsApi();
-}
+export const getAppointmentsUseCase = async (
+  page: number = 1,
+  pageSize: number = 10,
+  search: string = '',
+  status: string = 'all'
+): Promise<AppointmentsResponse> => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: pageSize.toString(),
+    ...(search && { search }),
+    ...(status !== 'all' && { status })
+  });
 
-export const getAppointmentsApi = async (): Promise<Appointment[]> => {
-  const { data } = await api.get(`/appointments`);
+  const { data } = await api.get(`/appointments?${params}`);
   return data;
 };
 
-// Get appointment by ID
-export async function getAppointmentByIdUseCase(appointmentId: string): Promise<Appointment> {
-  return getAppointmentByIdApi(appointmentId);
-}
-
-export const getAppointmentByIdApi = async (appointmentId: string): Promise<Appointment> => {
+export const getAppointmentByIdUseCase = async (appointmentId: string): Promise<Appointment> => {
   const { data } = await api.get(`/appointments/${appointmentId}`);
   return data;
 };
 
-// Update appointment status
-export async function updateAppointmentStatusUseCase(
-  appointmentId: string, 
-  statusData: StatusUpdateRequest
-): Promise<StatusUpdateResponse> {
-  return updateAppointmentStatusApi(appointmentId, statusData);
-}
 
-export const updateAppointmentStatusApi = async (
+export const updateAppointmentStatusUseCase = async (
   appointmentId: string, 
   statusData: StatusUpdateRequest
 ): Promise<StatusUpdateResponse> => {
-  const { data } = await api.put(`/appointments/${appointmentId}/status`, statusData);
+  const { data } = await api.put(`/status/${appointmentId}`, statusData);
   return data;
 };
 
-// Delete appointment
-export async function deleteAppointmentUseCase(appointmentId: string): Promise<{ message: string }> {
-  return deleteAppointmentApi(appointmentId);
-}
-
-export const deleteAppointmentApi = async (appointmentId: string): Promise<{ message: string }> => {
+export const deleteAppointmentUseCase = async (appointmentId: string): Promise<{ message: string }> => {
   const { data } = await api.delete(`/appointments/${appointmentId}`);
   return data;
 };

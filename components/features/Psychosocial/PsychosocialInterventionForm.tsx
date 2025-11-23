@@ -1,10 +1,10 @@
-// components/features/Psychosocial/PsychosocialInterventionForm.tsx
 "use client";
 
 import { useSubmitPsychosocialForm } from "@/application/hooks/useSubmitPsychosocialForm";
 import { Button } from "@/components/ui/Button/Button";
 import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
+import { assessmentForms } from "@/domain/constants/assessmentForms";
 import { PsychosocialInterventionFormPayload } from "@/domain/entities/assesments/psychosocialIntervention";
 import {
   psychosocialFormSchema,
@@ -25,19 +25,6 @@ const MODALITIES_OPTIONS = [
   { value: "Referral Community Service", label: "Referral Community Service" },
 ];
 
-const SERVICE_OPTIONS = [
-  { value: "PCO", label: "Proactive Community Outreach" },
-  { value: "Wellness", label: "Wellness Intervention" },
-  { value: "IOCR", label: "Immigration Crisis Response" },
-  { value: "Settlement", label: "Settlement & Integration" },
-  { value: "Psychosocial", label: "Psychosocial Wellbeing" },
-  { value: "Youth", label: "Youth Program" },
-  { value: "SALP", label: "Senior Active Living Program (SALP)" },
-  { value: "GBV", label: "Gender-Based Violence (GBV) Program" },
-  { value: "Training", label: "Training and Workshops" },
-  { value: "Policy", label: "Policy Influencing and Advocacy for Antiracism Initiatives" }
-];
-
 export default function PsychosocialInterventionForm() {
   const {
     register,
@@ -54,31 +41,29 @@ export default function PsychosocialInterventionForm() {
   });
 
   const { data: session } = useSession();
-   const router = useRouter();
-  
+  const router = useRouter();
+  const params = useParams();
+  const clientId = params.clientId as string;
 
-  const { mutate, isPending, isSuccess, error, isError } = useSubmitPsychosocialForm({
+  const { mutate, isPending, isError } = useSubmitPsychosocialForm({
     onSuccess: () => {
       toast.success("Psychosocial intervention form submitted successfully!");
       setTimeout(() => {
         reset();
       }, 3000);
-          router.push('/dashboard/personnel/Wellness/assessment-history');
-      
+      router.push('/dashboard/personnel/Wellness/assessment-history');
     },
-    onError: (error) => {
-      console.log("error", error);
+    onError: (error: { message: any; }) => {
       toast.error(`Submission failed: ${error.message || "Please try again later."}`);
     }
   });
-  const params = useParams();
-  const clientId = params.clientId as string;
 
   const onSubmit: SubmitHandler<PsychosocialFormValues> = (data) => {
     const payload: PsychosocialInterventionFormPayload = {
       client: clientId || "",
       personnel: session?.user?.id ?? "",
       service: session?.user?.role ?? "",
+      title: assessmentForms[5].id,
       formData: {
         data_entry_personnel_full_name: data.dataEntryPersonnelFullName,
         client_name: data.clientName,
@@ -98,11 +83,10 @@ export default function PsychosocialInterventionForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col p-6 bg-white gap-4 w-full md:max-w-[820px]  mx-start"
+      className="flex flex-col p-6 bg-white gap-4 w-full md:max-w-[820px] mx-start"
     >
       <h2 className="text-2xl font-bold mb-4 text-center">Psychosocial Intervention Plan</h2>
 
-      {/* Data Entry Personnel & Client Name */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
           label="Data Entry Personnel Full Name *"
@@ -118,7 +102,6 @@ export default function PsychosocialInterventionForm() {
         />
       </div>
 
-      {/* Modalities/Interventions */}
       <Controller
         name="modalities"
         control={control}
@@ -135,7 +118,6 @@ export default function PsychosocialInterventionForm() {
         )}
       />
 
-      {/* Other Agencies/Programs */}
       <InputField
         label="Other Agencies/Programs Involved"
         {...register("otherAgencies")}
@@ -143,7 +125,6 @@ export default function PsychosocialInterventionForm() {
         error={errors.otherAgencies?.message}
       />
 
-      {/* Client Housing Wants */}
       <div className="w-full">
         <label className="text-[14px] font-[500] text-[#6C6C6C] mb-2">
           Client Wants for Housing
@@ -158,7 +139,6 @@ export default function PsychosocialInterventionForm() {
         )}
       </div>
 
-      {/* IOS Staff & Signature */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
           label="IOS Staff Full Name"
@@ -174,14 +154,12 @@ export default function PsychosocialInterventionForm() {
         />
       </div>
 
-      {/* Date Completed */}
       <InputField
         placeholder={""} label="Date Completed"
         type="date"
         {...register("dateCompleted")}
-        error={errors.dateCompleted?.message} />
+        error={errors.dateCompleted?.message}      />
 
-      {/* Acknowledgement */}
       <div className="flex items-center gap-2 mt-4">
         <input
           type="checkbox"
@@ -197,17 +175,15 @@ export default function PsychosocialInterventionForm() {
         <span className="text-red-500 text-xs mt-1">{errors.acknowledgement.message}</span>
       )}
 
-      {/* Error Display */}
       {isError && <p className="text-red-500 text-center">Error submitting form. Please try again.</p>}
 
-      {/* Submit Button */}
       <div className="flex justify-center w-full mt-4">
         <Button
           type="submit"
           loading={isSubmitting || isPending}
           variant="primary"
           disabled={isSubmitting || isPending}
-          className={`w-full ${isSubmitting || isPending ? "bg-gray-400 cursor-not-allowed" : ""}`}
+          className="w-full"
         >
           {isSubmitting || isPending ? "Submitting..." : "Submit Form"}
         </Button>

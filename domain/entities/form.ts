@@ -28,6 +28,7 @@ export interface Form {
     updatedAt: string;
   };
   service: string;
+  title?:string
   formData: Record<string, any>;
   createdAt: string;
   updatedAt: string;

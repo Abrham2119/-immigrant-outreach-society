@@ -6,12 +6,15 @@ import { useSession } from "next-auth/react";
 interface UsePersonnelAppointmentsParams {
   personnelId: string;
   status: AppointmentStatus;
+  page?: number;
+  limit?: number;
+  search?: string;
 }
 
 export const usePersonnelAppointments = (params: UsePersonnelAppointmentsParams) => {  
   return useQuery({
     queryKey: ["personnelAppointments", params],
-    queryFn: () => getPersonnelAppointmentsUseCase(params.personnelId, params.status),
+    queryFn: () => getPersonnelAppointmentsUseCase(params.personnelId, params.status, params.page, params.limit, params.search),
     enabled: !!params.personnelId,
   });
 };

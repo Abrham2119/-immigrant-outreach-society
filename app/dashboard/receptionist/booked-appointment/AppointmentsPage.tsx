@@ -1,15 +1,14 @@
 "use client";
 import ModalComponent from '@/components/ui/modal/Modal';
-import { Appointment } from '@/domain/entities/geAppointment';
-import { useAppointmentManagement } from '@/domain/use-cases/getAppointment';
+import { Appointment, AppointmentsResponse } from '@/domain/entities/geAppointment';
+import { useAppointments } from '@/domain/use-cases/getAppointment';
 import { formatDateToDDMMYYYYHHMM } from '@/lib/utils/formatDateToDDMMYYYY';
 import { Calendar, Clock, Eye, User, Users } from 'lucide-react';
 import { useState } from 'react';
 import { AppointmentDetails } from './AppointmentDetails';
-import { Client } from '@/domain/entities/client';
-import { useClientManagement } from '@/domain/use-cases/client';
+import { useUpdateClientStatus } from '@/application/hooks/useClientManagement';
+import { Pagination } from '@/components/client/Pagination';
 
-// Status options and colors
 const statusOptions = [
   { label: 'All', value: 'all' },
   { label: 'Booked', value: 'booked' },
@@ -28,34 +27,50 @@ const statusColors = {
 export default function AppointmentsPage() {
   const [search, setSearch] = useState<string>("");
   const [status, setStatus] = useState<string>("all");
+  const [pageNum, setPageNum] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(8);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
-    const { updateClientStatusMutation } = useClientManagement();
-  
 
-  const { useAppointments, updateAppointmentStatusMutation } = useAppointmentManagement();
+  const updateClientStatusMutation = useUpdateClientStatus();
+  const { data: appointmentsData, isLoading, error } = useAppointments(pageNum, pageSize, search, status);
   
-const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "", "all");
+  const appointments = appointmentsData?.data || [];
+  console.log(appointmentsData)
+  const totalPages = appointmentsData?.meta?.totalPages || 1;
+  const totalAppointments = appointmentsData?.meta?.total || 0;
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
+    setPageNum(1);
   };
 
-    const handleStatusUpdate = async (clientId: string, newStatus: string) => {
+  const handleStatusUpdate = (clientId: string, newStatus: string) => {
     setStatusUpdateLoading(clientId);
-    try {
-      await updateClientStatusMutation.mutateAsync({
+    updateClientStatusMutation.mutate(
+      {
         clientId,
         statusData: { status: newStatus }
-      });
-    } finally {
-      setStatusUpdateLoading(null);
-    }
+      },
+      {
+        onSuccess: () => {
+          setStatusUpdateLoading(null);
+        },
+        onError: () => {
+          setStatusUpdateLoading(null);
+        }
+      }
+    );
   };
 
   const handleStatusChange = (value: string) => {
     setStatus(value);
+    setPageNum(1);
+  };
+
+  const handlePagination = (page: number) => {
+    setPageNum(page);
   };
 
   const openModal = (appointmentId: string) => {
@@ -68,21 +83,6 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
     setSelectedAppointmentId(null);
   };
 
-
-  // Filter appointments based on search and status
-  const filteredAppointments = appointments.filter(appointment => {
-    const matchesSearch = search === '' || 
-      appointment.client.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      appointment.client.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      appointment.personnel.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      appointment.personnel.lastName.toLowerCase().includes(search.toLowerCase());
-    
-    const matchesStatus = status === 'all' || appointment.status === status;
-    
-    return matchesSearch && matchesStatus;
-  });
-
-  // Format date for display
   const formatDisplayDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
@@ -92,7 +92,6 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
     });
   };
 
-  // Format time for display
   const formatTime = (time: string) => {
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
@@ -101,7 +100,6 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
     return `${displayHour}:${minutes} ${period}`;
   };
 
-  // Status dropdown component for each row
   const StatusDropdown = ({ appointment }: { appointment: Appointment }) => (
     <select
       value={appointment.status}
@@ -131,13 +129,12 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
-        {/* Header */}
         <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-gray-800">Appointments</h1>
             <p className="text-gray-600">Manage and view all appointments</p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <div className="flex border-[#000000]/50 border items-center rounded-[10px] md:w-[300px] h-[34px]">
               <input
@@ -148,7 +145,7 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
                 className="outline-none placeholder:text-[14px] px-3 w-full"
               />
             </div>
-            
+
             <div className="flex items-center gap-2">
               <span className="text-[14px] font-medium text-[#000000]/50">
                 Status
@@ -168,48 +165,47 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-600 text-sm font-medium">Total</p>
-                <p className="text-2xl font-bold text-blue-800">{appointments.length}</p>
+                <p className="text-2xl font-bold text-blue-800">{totalAppointments}</p>
               </div>
               <Calendar className="h-8 w-8 text-blue-600" />
             </div>
           </div>
-          
+
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-600 text-sm font-medium">Booked</p>
                 <p className="text-2xl font-bold text-green-800">
-                  {appointments.filter(a => a.status === 'booked').length}
+                  {appointments.filter((a: { status: string; }) => a.status === 'booked').length}
                 </p>
               </div>
               <Clock className="h-8 w-8 text-green-600" />
             </div>
           </div>
-          
+
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-orange-600 text-sm font-medium">Completed</p>
                 <p className="text-2xl font-bold text-orange-800">
-                  {appointments.filter(a => a.status === 'completed').length}
+                  {appointments.filter((a: { status: string; }) => a.status === 'completed').length}
                 </p>
               </div>
               <User className="h-8 w-8 text-orange-600" />
             </div>
           </div>
-          
+
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-red-600 text-sm font-medium">Cancelled</p>
                 <p className="text-2xl font-bold text-red-800">
-                  {appointments.filter(a => a.status === 'cancelled').length}
+                  {appointments.filter((a: { status: string; }) => a.status === 'cancelled').length}
                 </p>
               </div>
               <Users className="h-8 w-8 text-red-600" />
@@ -217,7 +213,6 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
           </div>
         </div>
 
-        {/* Appointments Table */}
         <div className="overflow-x-auto border border-[#71717180]/50 min-h-[60vh] text-[#555555]">
           <table className="w-full text-sm min-w-[800px]">
             <thead>
@@ -240,14 +235,14 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
                     </div>
                   </td>
                 </tr>
-              ) : filteredAppointments.length === 0 ? (
+              ) : appointments.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-8">
                     No appointments found.
                   </td>
                 </tr>
               ) : (
-                filteredAppointments.map((appointment, index) => (
+                appointments.map((appointment: Appointment, index: number) => (
                   <tr
                     key={appointment._id}
                     className={`${index % 2 === 0 ? "bg-white" : "bg-[#F7F7F7]"} hover:bg-gray-50`}
@@ -261,7 +256,7 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
                         <p className="text-xs text-gray-500">{appointment.client.mobile}</p>
                       </div>
                     </td>
-                    
+
                     <td className="px-4 py-4">
                       <div>
                         <p className="font-medium text-gray-900">
@@ -271,7 +266,7 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
                         <p className="text-xs text-gray-500">{appointment.personnel.email}</p>
                       </div>
                     </td>
-                    
+
                     <td className="px-4 py-4">
                       <div>
                         <p className="font-medium text-gray-900">
@@ -282,19 +277,19 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
                         </p>
                       </div>
                     </td>
-                    
+
                     <td className="px-4 py-4 text-gray-900 font-medium">
                       1 hour
                     </td>
-                    
+
                     <td className="px-4 py-4">
                       <StatusDropdown appointment={appointment} />
                     </td>
-                    
+
                     <td className="px-4 py-4 text-sm text-gray-600">
                       {formatDateToDDMMYYYYHHMM(appointment.createdAt)}
                     </td>
-                    
+
                     <td className="px-4 py-4">
                       <button
                         onClick={() => openModal(appointment._id)}
@@ -310,9 +305,16 @@ const { data: appointments = [], isLoading, error } = useAppointments(1, 10, "",
             </tbody>
           </table>
         </div>
+
+        {appointmentsData && totalPages > 1 && (
+          <Pagination
+            pageNum={pageNum}
+            totalPages={totalPages}
+            onPageChange={handlePagination}
+          />
+        )}
       </div>
 
-      {/* Appointment Details Modal */}
       <ModalComponent isOpen={isModalOpen} onClose={closeModal}>
         {selectedAppointmentId && <AppointmentDetails id={selectedAppointmentId} />}
       </ModalComponent>

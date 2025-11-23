@@ -1,20 +1,20 @@
-// domain/validation/contactNoteForm.schema.ts
 import { z } from 'zod';
 
 export const contactNoteFormSchema = z.object({
-  clientFullName: z.string().min(1, "Client full name is required"),
-  sqlStaffFullName: z.string().min(1, "SQL staff full name is required"),
-  scope_of_service: z.array(z.string()).min(1, "At least one service scope must be selected"),
-  clientNameForHosting: z.string().optional(),
-  actionInformation: z.string().optional(),
-  clientRequestToAction: z.string().optional(),
-  clientAuditForHosting: z.string().optional(),
-  partyDataStatus: z.string().optional(),
-  appointmentStatus: z.string().optional(),
-  acknowledgement: z.boolean().refine(val => val === true, "Acknowledgement is required"),
-  signature: z.string().min(1, "Signature is required"),
-  nameComposition: z.string().optional(),
-  dateCompleted: z.string().optional(),
+  data_entry_personnel_name: z.string().min(1, "Data entry personnel name is required"),
+  client_first_name: z.string().min(1, "Client first name is required"),
+  client_last_name: z.string().min(1, "Client last name is required"),
+  ios_staff_first_name: z.string().min(1, "IOS staff first name is required"),
+  ios_staff_last_name: z.string().min(1, "IOS staff last name is required"),
+  date_of_contact: z.string().min(1, "Date of contact is required"),
+  client_concerns: z.string().optional(),
+  interventions: z.string().optional(),
+  client_response: z.string().optional(),
+  future_actions: z.string().optional(),
+  date_of_next_appointment: z.string().min(1, "Date of next appointment is required"),
+  acknowledgement_name: z.string().min(1, "Acknowledgement name is required"),
+  acknowledgement_signature: z.string().min(1, "Signature is required"),
+  date_completed: z.string().min(1, "Date completed is required"),
 });
 
 export type ContactNoteFormValues = z.infer<typeof contactNoteFormSchema>;

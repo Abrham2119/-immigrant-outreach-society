@@ -14,6 +14,7 @@ export interface AppointmentClient {
   services: string[];
   status: string;
   registeredBy: string | null;
+  phone: string;
   createdAt: string;
   updatedAt: string;
   __v?: number;
@@ -46,9 +47,22 @@ export interface Appointment {
 }
 
 export interface AppointmentsResponse {
-  success?: boolean;
-  appointments: Appointment[];
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    count: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
+  data: Appointment[];
 }
+
 
 export interface StatusUpdateRequest {
   status: string;
@@ -58,4 +72,11 @@ export interface StatusUpdateRequest {
 export interface StatusUpdateResponse {
   message?: string;
   status?: string;
+}
+
+// Additional interface for single appointment response if needed
+export interface AppointmentResponse {
+  success: boolean;
+  message: string;
+  data: Appointment;
 }

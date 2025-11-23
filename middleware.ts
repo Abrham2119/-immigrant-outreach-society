@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-// Role-specific paths based on your API response
+// Role-specific paths - UPDATED with Personnel Admin
 const rolePaths: Record<string, string> = {
   PCO: "/dashboard/personnel/PCO",
   Wellness: "/dashboard/personnel/Wellness",
@@ -13,21 +13,25 @@ const rolePaths: Record<string, string> = {
   GBV: "/dashboard/personnel/GBV",
   Training: "/dashboard/personnel/Training",
   Policy: "/dashboard/personnel/Policy",
-  receptionist: "/dashboard/receptionist", 
+  Receptionist: "/dashboard/receptionist",
   Admin: "/dashboard/admin",
+  "Personnel Admin": "/dashboard/PersonnelAdmin",
 };
 
-const DEFAULT_AUTHENTICATED_PATH = "/signin";
-const AUTH_PAGES = ["/", "/api/auth/signin"];
+const DEFAULT_AUTHENTICATED_PATH = "/dashboard";
+const AUTH_PAGES = ["/", "/signin"];
 
 export async function middleware(req: NextRequest) {
   const session = await auth();
   const pathname = req.nextUrl.pathname;
 
+  console.log("Middleware - Path:", pathname, "Role:", session?.user?.role);
+
   // 1. Handle auth pages - redirect logged-in users to their appropriate dashboard
   if (session && AUTH_PAGES.includes(pathname)) {
     const role = session?.user?.role as string;
     const redirectPath = rolePaths[role] || DEFAULT_AUTHENTICATED_PATH;
+    console.log("Redirecting from auth page to:", redirectPath);
     return NextResponse.redirect(new URL(redirectPath, req.url));
   }
 
@@ -35,47 +39,41 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith("/dashboard")) {
     // 2.1 Block unauthenticated access
     if (!session) {
-      const signInUrl = new URL("/", req.url);
+      const signInUrl = new URL("/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", req.url);
+      console.log("No session, redirecting to signin");
       return NextResponse.redirect(signInUrl);
     }
 
-    // 2.2 Handle role-based routing within dashboard
     const role = session?.user?.role as string;
-    const expectedPath = role ? rolePaths[role] : DEFAULT_AUTHENTICATED_PATH;
+    const expectedPath = rolePaths[role];
 
-    // Only redirect if user isn't already on their correct path
+    // 2.2 Only redirect if user isn't already on their correct path
     if (expectedPath && !pathname.startsWith(expectedPath)) {
+      console.log("Role-based redirect to:", expectedPath);
       return NextResponse.redirect(new URL(expectedPath, req.url));
     }
 
-    // 2.3 Additional role-based access control for specific routes
-    
-    // Personnel routes (all roles except Receptionist and Admin)
+    // 2.3 Additional role-based access control
     const personnelRoles = ["PCO", "Wellness", "IOCR", "Settlement", "Psychosocial", "Youth", "SALP", "GBV", "Training", "Policy"];
-    
-    if (pathname.startsWith("/dashboard/personnel") && !personnelRoles.includes(role) && role !== "Admin") {
-      return NextResponse.redirect(new URL(rolePaths[role] || DEFAULT_AUTHENTICATED_PATH, req.url));
+    const adminRoles = ["Admin", "Personnel Admin"]; // UPDATED: Both Admin and Personnel Admin have admin access
+
+    // Personnel routes access control
+    if (pathname.startsWith("/dashboard/personnel") && !personnelRoles.includes(role) && !adminRoles.includes(role)) {
+      console.log("Unauthorized personnel access, redirecting to:", expectedPath);
+      return NextResponse.redirect(new URL(expectedPath, req.url));
     }
 
-    // Receptionist route
-    if (pathname.startsWith("/dashboard/receptionist") && role !== "receptionist" && role !== "Admin") {
-      return NextResponse.redirect(new URL(rolePaths[role] || DEFAULT_AUTHENTICATED_PATH, req.url));
+    // Receptionist route access control
+    if (pathname.startsWith("/dashboard/receptionist") && role !== "Receptionist" && !adminRoles.includes(role)) {
+      console.log("Unauthorized receptionist access, redirecting to:", expectedPath);
+      return NextResponse.redirect(new URL(expectedPath, req.url));
     }
 
-    // Admin route
-    if (pathname.startsWith("/dashboard/admin") && role !== "Admin") {
-      return NextResponse.redirect(new URL(rolePaths[role] || DEFAULT_AUTHENTICATED_PATH, req.url));
-    }
-
-    // Specific personnel role access control
-    if (pathname.startsWith("/dashboard/personnel")) {
-      const pathSegments = pathname.split('/');
-      const personnelType = pathSegments[3]; // Get the personnel type from /dashboard/personnel/{type}
-      
-      if (personnelType && personnelType !== role && role !== "Admin") {
-        return NextResponse.redirect(new URL(rolePaths[role] || DEFAULT_AUTHENTICATED_PATH, req.url));
-      }
+    // Admin route access control - UPDATED to include Personnel Admin
+    if (pathname.startsWith("/dashboard/admin") && !adminRoles.includes(role)) {
+      console.log("Unauthorized admin access, redirecting to:", expectedPath);
+      return NextResponse.redirect(new URL(expectedPath, req.url));
     }
   }
 
@@ -83,5 +81,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/signin", "/otp-verify"],
+  matcher: ["/", "/signin", "/dashboard/:path*"],
 };

@@ -66,7 +66,7 @@ export default function LoginForm() {
 
   return (
     <div className="flex items-center justify-center h-full">
-      <div className="p-6 sm:p-7 sm:pt-6 mt-4 w-full mx-2 sm:mx-0 max-w-[26rem] md:max-w-[31rem]  bg-white shadow-md rounded-md">
+      <div className="p-6 sm:p-7 sm:pt-6 mt-4 w-full mx-2 sm:mx-0 max-w-[26rem] md:max-w-[31rem]  bg-white  shadow-md rounded-md">
         <div className="sm:mx-auto sm:w-full sm:max-w-sm flex justify-center">
           {/* <img
             src="/images/logos/addis-sytems-log.svg"
