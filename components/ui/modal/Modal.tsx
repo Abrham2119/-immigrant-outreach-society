@@ -3,8 +3,11 @@ import { X } from 'lucide-react';
 import React from 'react';
 import { ModalProps } from './ModalProps.types';
 
+interface ExtendedModalProps extends ModalProps {
+  title?: string;
+}
 
-const ModalComponent: React.FC<ModalProps> = ({ isOpen, onClose, icon, children, className }) => {
+const ModalComponent: React.FC<ExtendedModalProps> = ({ isOpen, onClose, icon, children, className, title }) => {
     if (!isOpen) return null;
 
     return (
@@ -25,6 +28,12 @@ const ModalComponent: React.FC<ModalProps> = ({ isOpen, onClose, icon, children,
                     <X className="h-6 w-6" />
                 </button>
                 <div className="flex flex-col gap-8 items-center  justify-center">
+                    {/* Add title section */}
+                    {title && (
+                        <div className="w-full text-center">
+                            <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+                        </div>
+                    )}
                     {icon}
                     {children}
                 </div>

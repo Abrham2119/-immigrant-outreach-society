@@ -58,6 +58,7 @@ const receptionistNavItems = [
 
 const adminNavItems = [
   { href: "/", label: "Dashboard" },
+   { href: "/employees", label: "Employees" },
   { href: "/exeptions", label: "Exemptions" },
 ];
 
