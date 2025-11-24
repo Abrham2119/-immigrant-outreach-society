@@ -3,13 +3,13 @@ import { submitPsychosocialFormUseCase } from '@/domain/use-cases/submitPsychoso
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
-export const useSubmitPsychosocialForm = ({ onSuccess, onError }: {
-    onSuccess: () => void;
-    onError: (error: any) => void;
-}) => {
-    return useMutation<{ message: string }, AxiosError, PsychosocialInterventionForm>({
-        mutationFn: submitPsychosocialFormUseCase,
-        onSuccess,
-        onError,
-    });
-};
+export function useSubmitPsychosocialInterventionForm({ onSuccess, onError }: { 
+  onSuccess: () => void; 
+  onError: (error: any) => void; 
+}) {
+  return useMutation<{ message: string }, AxiosError, PsychosocialInterventionForm>({
+    mutationFn: (payload: PsychosocialInterventionForm) => submitPsychosocialFormUseCase(payload),
+    onSuccess,  
+    onError,   
+  });
+}

@@ -7,10 +7,8 @@ import Dropdown from "@/components/ui/Dropdown/Dropdown";
 import InputField from "@/components/ui/InputField/InputField";
 import { assessmentForms } from "@/domain/constants/assessmentForms";
 import { PsychosocialIntakeFormPayload } from "@/domain/entities/assesments/psychosocialIntake";
-import {
-  psychosocialIntakeSchema,
-  PsychosocialIntakeValues,
-} from "@/domain/validation/psychosocialIntake.schema";
+import { psychosocialIntakeFormSchema, PsychosocialIntakeFormValues } from "@/domain/validation/psychosocialIntake.schema";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
@@ -69,21 +67,17 @@ export default function PsychosocialIntakeForm() {
   const {
     register,
     handleSubmit,
-    control,
     formState: { errors, isSubmitting },
     reset,
-  } = useForm<PsychosocialIntakeValues>({
-    resolver: zodResolver(psychosocialIntakeSchema),
+  } = useForm<PsychosocialIntakeFormValues>({
+    resolver: zodResolver(psychosocialIntakeFormSchema),
     defaultValues: {
-      servicesRequested: [],
-      consentToTreatment: false,
-      confidentialityAcknowledgment: false,
+      date_of_assessment: new Date().toISOString().split('T')[0],
+      date_of_birth: new Date().toISOString().split('T')[0],
     },
   });
 
   const { data: session } = useSession();
-  const router = useRouter();
-
 
   const { mutate, isPending, isSuccess, error, isError } = useSubmitPsychosocialIntake({
     onSuccess: () => {
@@ -91,9 +85,8 @@ export default function PsychosocialIntakeForm() {
       setTimeout(() => {
         reset();
       }, 3000);
-      router.push('/dashboard/personnel/Wellness/assessment-history');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.log("error", error);
       toast.error(`Submission failed: ${error.message || "Please try again later."}`);
     }
@@ -102,40 +95,36 @@ export default function PsychosocialIntakeForm() {
   const params = useParams();
   const clientId = params.clientId as string;
 
-  const onSubmit: SubmitHandler<PsychosocialIntakeValues> = (data) => {
+  const onSubmit: SubmitHandler<PsychosocialIntakeFormValues> = (data) => {
     const payload: PsychosocialIntakeFormPayload = {
       client: clientId || "",
       personnel: session?.user?.id ?? "",
       service: session?.user?.role ?? "",
-      title: assessmentForms[6].id,
+      title: "IOS Psychosocial Intake Assessment",
       formData: {
-        client_name: data.clientName,
-        date_of_assessment: data.dateOfAssessment,
-        date_of_birth: data.dateOfBirth,
-        gender: data.gender,
-        marital_status: data.maritalStatus,
-        nationality: data.nationality,
-        immigration_status: data.immigrationStatus,
-        language: data.language,
-        address: data.address,
-        phone_number: data.phoneNumber,
-        email: data.email,
-        emergency_contact: data.emergencyContact,
-        presenting_problem: data.presentingProblem,
-        medical_history: data.medicalHistory,
-        mental_health_history: data.mentalHealthHistory,
-        substance_use_history: data.substanceUseHistory,
-        family_history: data.familyHistory,
-        social_support: data.socialSupport,
-        current_medications: data.currentMedications,
-        strengths_resources: data.strengthsResources,
-        risk_assessment: data.riskAssessment,
-        referred_by: data.referredBy,
-        services_requested: data.servicesRequested,
-        consent_to_treatment: data.consentToTreatment,
-        confidentiality_acknowledgment: data.confidentialityAcknowledgment,
-        assessor_name: data.assessorName,
-        assessor_signature: data.assessorSignature,
+        data_entry_personnel_name: data.data_entry_personnel_name,
+        date_of_assessment: data.date_of_assessment,
+        client_first_name: data.client_first_name,
+        client_last_name: data.client_last_name,
+        preferred_first_name: data.preferred_first_name,
+        date_of_birth: data.date_of_birth,
+        street_address: data.street_address,
+        address_line_2: data.address_line_2,
+        city: data.city,
+        state_province_region: data.state_province_region,
+        zip_postal_code: data.zip_postal_code,
+        country: data.country,
+        home_phone: data.home_phone,
+        cell_phone: data.cell_phone,
+        presenting_concerns: data.presenting_concerns,
+        collateral_information: data.collateral_information,
+        personal_family_history: data.personal_family_history,
+        addictions_substance_use: data.addictions_substance_use,
+        past_mental_health: data.past_mental_health,
+        medical_history_status: data.medical_history_status,
+        current_medications: data.current_medications,
+        risk_assessment: data.risk_assessment,
+        intervention_plan: data.intervention_plan,
       },
     };
 
@@ -145,261 +134,296 @@ export default function PsychosocialIntakeForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col p-6 bg-white gap-6 w-full md:max-w-[900px] mx-start"
+      className="flex flex-col p-6 bg-white gap-6 w-full md:max-w-[820px] mx-auto border border-gray-200 rounded-lg"
     >
-      <h2 className="text-2xl font-bold text-center mb-2">PSYCHOSOCIAL INTAKE ASSESSMENT</h2>
+      {/* Header */}
+      <div className="text-center border-b pb-4">
+        <h2 className="text-2xl font-bold uppercase">IOS PSYCHOSOCIAL INTAKE ASSESSMENT</h2>
+        <p className="text-lg font-semibold text-gray-700 mt-2">Client Information</p>
+      </div>
 
-      {/* Client Information Section */}
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold mb-4">Client Information</h3>
+      {/* Page 1 Content */}
+      <div className="space-y-6">
+        {/* Data Entry Personnel */}
+        <InputField
+          label="Data Entry Personnel Name (Required)"
+          {...register("data_entry_personnel_name")}
+          placeholder="Enter full name"
+          error={errors.data_entry_personnel_name?.message}
+        />
 
+        {/* Date of Assessment */}
+        <InputField
+          placeholder={""} label="Date of Assessment (Required)"
+          type="date"
+          {...register("date_of_assessment")}
+          error={errors.date_of_assessment?.message} />
+
+        {/* Client Name */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InputField
-            label="Client Name *"
-            {...register("clientName")}
-            placeholder="Enter client name"
-            error={errors.clientName?.message}
+            label="Client Name: (Required) - First"
+            {...register("client_first_name")}
+            placeholder="First name"
+            error={errors.client_first_name?.message}
           />
           <InputField
-            placeholder={""} label="Date of Assessment *"
-            type="date"
-            {...register("dateOfAssessment")}
-            error={errors.dateOfAssessment?.message} />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <InputField
-            placeholder={""} label="Date of Birth"
-            type="date"
-            {...register("dateOfBirth")} />
-
-          <Controller
-            name="gender"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                label="Gender"
-                options={GENDER_OPTIONS}
-                selected={field.value || ""}
-                onChange={field.onChange}
-                placeholder="Select gender"
-              />
-            )}
+            label="Client Name: (Required) - Last"
+            {...register("client_last_name")}
+            placeholder="Last name"
+            error={errors.client_last_name?.message}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <Controller
-            name="maritalStatus"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                label="Marital Status"
-                options={MARITAL_STATUS_OPTIONS}
-                selected={field.value || ""}
-                onChange={field.onChange}
-                placeholder="Select marital status"
-              />
-            )}
-          />
-
-          <Controller
-            name="nationality"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                label="Nationality"
-                options={NATIONALITY_OPTIONS}
-                selected={field.value || ""}
-                onChange={field.onChange}
-                placeholder="Select nationality"
-              />
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <Controller
-            name="immigrationStatus"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                label="Immigration Status"
-                options={IMMIGRATION_STATUS_OPTIONS}
-                selected={field.value || ""}
-                onChange={field.onChange}
-                placeholder="Select immigration status"
-              />
-            )}
-          />
-
-          <Controller
-            name="language"
-            control={control}
-            render={({ field }) => (
-              <Dropdown
-                label="Primary Language"
-                options={LANGUAGE_OPTIONS}
-                selected={field.value || ""}
-                onChange={field.onChange}
-                placeholder="Select language"
-              />
-            )}
-          />
-        </div>
-      </div>
-
-      {/* Contact Information Section */}
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-
+        {/* Preferred Name */}
         <InputField
-          label="Address"
-          {...register("address")}
-          placeholder="Enter full address"
-          className="mb-4"
+          label="Preferred Name: - First"
+          {...register("preferred_first_name")}
+          placeholder="Preferred first name"
+          error={errors.preferred_first_name?.message}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Date of Birth */}
+        <InputField
+          placeholder={""} label="Date of Birth (Required)"
+          type="date"
+          {...register("date_of_birth")}
+          error={errors.date_of_birth?.message} />
+
+        {/* Address */}
+        <InputField
+          label="Address (Required) - Street Address"
+          {...register("street_address")}
+          placeholder="Street Address"
+          error={errors.street_address?.message}
+        />
+
+        <InputField
+          label="Address Line 2"
+          {...register("address_line_2")}
+          placeholder="Apartment, suite, unit, etc."
+          error={errors.address_line_2?.message}
+        />
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <InputField
-            label="Phone Number"
-            {...register("phoneNumber")}
-            placeholder="Enter phone number"
+            label="City"
+            {...register("city")}
+            placeholder="City"
+            error={errors.city?.message}
           />
           <InputField
-            label="Email"
-            type="email"
-            {...register("email")}
-            placeholder="Enter email address"
+            label="State / Province / Region"
+            {...register("state_province_region")}
+            placeholder="State/Province/Region"
+            error={errors.state_province_region?.message}
+          />
+          <InputField
+            label="ZIP / Postal Code"
+            {...register("zip_postal_code")}
+            placeholder="ZIP/Postal Code"
+            error={errors.zip_postal_code?.message}
+          />
+          <InputField
+            label="Country"
+            {...register("country")}
+            placeholder="Country"
+            error={errors.country?.message}
           />
         </div>
 
+        {/* Home Phone */}
         <InputField
-          label="Emergency Contact"
-          {...register("emergencyContact")}
-          placeholder="Enter emergency contact information"
-          className="mt-4"
+          label="Home Phone: (Required)"
+          type="tel"
+          {...register("home_phone")}
+          placeholder="Enter home phone number"
+          error={errors.home_phone?.message}
         />
       </div>
 
-      {/* Assessment Information Section */}
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold mb-4">Assessment Information</h3>
-
-        {[
-          { label: "Presenting Problem", name: "presentingProblem", rows: 3 },
-          { label: "Medical History", name: "medicalHistory", rows: 3 },
-          { label: "Mental Health History", name: "mentalHealthHistory", rows: 3 },
-          { label: "Substance Use History", name: "substanceUseHistory", rows: 2 },
-          { label: "Family History", name: "familyHistory", rows: 3 },
-          { label: "Social Support", name: "socialSupport", rows: 2 },
-          { label: "Current Medications", name: "currentMedications", rows: 2 },
-          { label: "Strengths and Resources", name: "strengthsResources", rows: 3 },
-          { label: "Risk Assessment", name: "riskAssessment", rows: 2 },
-        ].map((field) => (
-          <div key={field.name} className="mb-4">
-            <label className="text-[14px] font-[500] text-[#6C6C6C] mb-2 block">
-              {field.label}
-            </label>
-            <textarea
-              {...register(field.name as any)}
-              placeholder={`Enter ${field.label.toLowerCase()}...`}
-              rows={field.rows}
-              className="w-full border-[1px] border-[#DADADA] rounded-[8px] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y text-sm"
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* Service Information Section */}
-      <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold mb-4">Service Information</h3>
-
+      {/* Page 2 Content */}
+      <div className="border-t pt-6 mt-6 space-y-6">
+        {/* Cell Phone */}
         <InputField
-          label="Referred By"
-          {...register("referredBy")}
-          placeholder="Enter referral source"
-          className="mb-4"
+          label="Cell Phone: (Required)"
+          type="tel"
+          {...register("cell_phone")}
+          placeholder="Enter cell phone number"
+          error={errors.cell_phone?.message}
         />
 
-        <Controller
-          name="servicesRequested"
-          control={control}
-          render={({ field }) => (
-            <Dropdown
-              label="Services Requested"
-              options={SERVICES_OPTIONS}
-              selected={field.value || []}
-              onChange={field.onChange}
-              multiple={true}
-              placeholder="Select requested services"
-            />
+        {/* PRESENTING CONCERNS */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            PRESENTING CONCERNS
+          </label>
+          <textarea
+            {...register("presenting_concerns")}
+            placeholder="Enter presenting concerns"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.presenting_concerns && (
+            <span className="text-red-500 text-xs mt-1">{errors.presenting_concerns.message}</span>
           )}
-        />
+        </div>
+
+        {/* COLLATERAL INFORMATION */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            COLLATERAL INFORMATION
+          </label>
+          <textarea
+            {...register("collateral_information")}
+            placeholder="Enter collateral information"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.collateral_information && (
+            <span className="text-red-500 text-xs mt-1">{errors.collateral_information.message}</span>
+          )}
+        </div>
+
+        {/* PERSONAL / FAMILY HISTORY */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            PERSONAL / FAMILY HISTORY
+          </label>
+          <textarea
+            {...register("personal_family_history")}
+            placeholder="Enter personal and family history"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.personal_family_history && (
+            <span className="text-red-500 text-xs mt-1">{errors.personal_family_history.message}</span>
+          )}
+        </div>
       </div>
 
-      {/* <div className="border-b pb-4">
-        <h3 className="text-lg font-semibold mb-4">Consent and Acknowledgments</h3>
-
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="consentToTreatment"
-              {...register("consentToTreatment")}
-              className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="consentToTreatment" className="text-sm text-gray-700">
-              I consent to psychosocial treatment and services
-            </label>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="confidentialityAcknowledgment"
-              {...register("confidentialityAcknowledgment")}
-              className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <label htmlFor="confidentialityAcknowledgment" className="text-sm text-gray-700">
-              I acknowledge that my information will be kept confidential according to privacy laws
-            </label>
-          </div>
+      {/* Page 3 Content */}
+      <div className="border-t pt-6 mt-6 space-y-6">
+        {/* ADDICTIONS AND SUBSTANCE USE / ABUSE */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ADDICTIONS AND SUBSTANCE USE / ABUSE
+          </label>
+          <textarea
+            {...register("addictions_substance_use")}
+            placeholder="Enter information about addictions and substance use/abuse"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.addictions_substance_use && (
+            <span className="text-red-500 text-xs mt-1">{errors.addictions_substance_use.message}</span>
+          )}
         </div>
-      </div> */}
 
-      {/* Assessor Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <InputField
-          label="Assessor Name"
-          {...register("assessorName")}
-          placeholder="Enter assessor name"
-        />
-        <InputField
-          label="Assessor Signature"
-          {...register("assessorSignature")}
-          placeholder="Enter signature"
-        />
+        {/* PAST MENTAL HEALTH */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            PAST MENTAL HEALTH
+          </label>
+          <textarea
+            {...register("past_mental_health")}
+            placeholder="Enter past mental health history"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.past_mental_health && (
+            <span className="text-red-500 text-xs mt-1">{errors.past_mental_health.message}</span>
+          )}
+        </div>
+
+        {/* MEDICAL HISTORY / STATUS */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            MEDICAL HISTORY / STATUS
+          </label>
+          <textarea
+            {...register("medical_history_status")}
+            placeholder="Enter medical history and current status"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.medical_history_status && (
+            <span className="text-red-500 text-xs mt-1">{errors.medical_history_status.message}</span>
+          )}
+        </div>
       </div>
 
-      {/* Error Display */}
-      {isError && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600 text-center">Error submitting form. Please try again.</p>
+      {/* Page 4 Content */}
+      <div className="border-t pt-6 mt-6 space-y-6">
+        {/* CURRENT MEDICATIONS */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            CURRENT MEDICATIONS
+          </label>
+          <textarea
+            {...register("current_medications")}
+            placeholder="Enter current medications"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.current_medications && (
+            <span className="text-red-500 text-xs mt-1">{errors.current_medications.message}</span>
+          )}
         </div>
-      )}
 
-      {/* Submit Button */}
-      <div className="flex justify-center w-full mt-6">
-        <Button
-          type="submit"
-          loading={isSubmitting || isPending}
-          variant="primary"
-          disabled={isSubmitting || isPending}
-          className={`w-full md:w-64 ${isSubmitting || isPending ? "bg-gray-400 cursor-not-allowed" : ""}`}
-        >
-          {isSubmitting || isPending ? "Submitting Assessment..." : "Submit Assessment"}
-        </Button>
+        {/* RISK ASSESSMENT */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            RISK ASSESSMENT
+          </label>
+          <textarea
+            {...register("risk_assessment")}
+            placeholder="Enter risk assessment"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.risk_assessment && (
+            <span className="text-red-500 text-xs mt-1">{errors.risk_assessment.message}</span>
+          )}
+        </div>
+
+        {/* INTERVENTION PLAN */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            INTERVENTION PLAN
+          </label>
+          <textarea
+            {...register("intervention_plan")}
+            placeholder="Enter intervention plan"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[100px]"
+          />
+          {errors.intervention_plan && (
+            <span className="text-red-500 text-xs mt-1">{errors.intervention_plan.message}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Page 5 Content */}
+      <div className="border-t pt-6 mt-6">
+        {/* Error Display */}
+        {isError && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-4 mb-6">
+            <p className="text-red-600 text-center">Error submitting psychosocial intake assessment. Please try again.</p>
+          </div>
+        )}
+
+        {/* Action Buttons */}
+        <div className="flex gap-4 justify-center w-full">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 max-w-[200px]"
+            onClick={() => reset()}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            loading={isSubmitting || isPending}
+            variant="primary"
+            disabled={isSubmitting || isPending}
+            className="flex-1 max-w-[200px]"
+          >
+            {isSubmitting || isPending ? "Submitting..." : "Submit"}
+          </Button>
+        </div>
       </div>
     </form>
   );
