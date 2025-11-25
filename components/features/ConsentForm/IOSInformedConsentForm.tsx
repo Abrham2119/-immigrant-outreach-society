@@ -115,6 +115,47 @@ export default function IOSInformedConsentForm() {
       personnel: session?.user?.id ?? "",
       service: session?.user?.role ?? "",
       title: "ios_informed_consent",
+      consentText: `    <div className="mb-6 p-4 bg-gray-50 rounded-md max-h-96 overflow-y-auto">
+        <div className="text-sm text-gray-700 space-y-4">
+          <p>
+            Immigrant Outreach Society (IOS) is a community-based non-profit organization that provides mental health intervention and psychological services for refugees and ethnic minorities from East Africa, including Ethiopia, Eritrea, Somalia, Sudan, and South Sudan.
+          </p>
+
+          <div>
+            <h3 className="font-semibold mb-2">Confidentiality:</h3>
+            <p className="mb-3">
+              One of the most important rights of the person seeking counseling is confidentiality. Information revealed by you during counseling sessions will be kept strictly confidential and will not be revealed to any other person or agency without your written permission, with the following exceptions:
+            </p>
+            <ol className="list-decimal list-inside space-y-2 ml-2">
+              <li>If an individual intends to take harmful, dangerous, or criminal action against another human being, or against himself or herself, it is our duty to warn appropriate individuals or agencies of such intentions.</li>
+              <li>Any suspected or confirmed acts of abuse towards a child, elder or vulnerable person (including physical abuse, sexual abuse, unlawful sexual intercourse, neglect, emotional and psychological abuse) will need to be reported to the appropriate agencies by the counsellor.</li>
+              <li>When the courts believe that a client's counsellor may have valuable information for their case, they will subpoena her/his notes, records, and in some instances, even the counsellor themselves.</li>
+              <li>Information about you may be discussed in confidence, without revealing your identity, with other psychosocial support professionals and or supervisors for the purpose of consultation and providing you with the best possible service.</li>
+            </ol>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">Minors:</h3>
+            <p>
+              If you are under 18 years of age, please be aware that the law may provide your parents the right to examine your records. It is our policy to request an agreement from parents that they agree to give up access to your records. If they agree, we will provide them only with general information about our work together, unless we feel there is a high risk that you will harm yourself or someone else. In this case, we will notify them of my concern. Before giving them any information, we will discuss the matter with you, if possible, and do my best to handle any concerns you may have with what I am prepared to discuss.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">Emergencies:</h3>
+            <p>
+              IOS doesn't provide emergency or crisis related services. If you have an emergency or are experiencing a crisis, please go the local hospital or emergency, call the Distress Centre (403-266-4357), or 911.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-2">Acknowledgement and Consent:</h3>
+            <p>
+              Upon signing below, you are indicating that you have read and understood this consent form and that any questions you had about this consent form were answered to your satisfaction, and that you were provided a copy of this document. You agree to accept the psychosocial support services as detailed above.
+            </p>
+          </div>
+        </div>
+      </div>`,
       formData: {
         data_entry_personnel_name: data.dataEntryPersonnelName,
         consent: data.consent,
@@ -124,6 +165,7 @@ export default function IOSInformedConsentForm() {
         ios_staff_signature: iosStaffSignatureData,
         ios_staff_full_name: data.iosStaffFullName,
         ios_staff_date: data.iosStaffDate,
+
       },
     };
 
@@ -219,7 +261,7 @@ export default function IOSInformedConsentForm() {
         {/* Client Section */}
         <div className="lg:max-w-96">
           <h2 className="text-lg font-semibold mb-4">Client</h2>
-          
+
           {/* Client Signature Pad */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -284,7 +326,7 @@ export default function IOSInformedConsentForm() {
         {/* IOS Staff Section */}
         <div className="lg:max-w-96">
           <h2 className="text-lg font-semibold mb-4">IOS Staff</h2>
-          
+
           {/* IOS Staff Signature Pad */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -173,12 +173,11 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
-       
+      <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">      
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">My Appointments</h1>
-          <p className="text-gray-600">Manage your scheduled appointments</p>
+          <h1 className="text-2xl font-bold text-gray-800">Client Appointments</h1>
+          <p className="text-gray-600">Manage client scheduled appointments</p>
         </div>
          <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-3">
           <div className="flex border-[#000000]/50 border items-center rounded-[10px] md:w-[531px] h-[34px]">
