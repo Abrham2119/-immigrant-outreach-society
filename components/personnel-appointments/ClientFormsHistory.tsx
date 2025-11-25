@@ -1,7 +1,7 @@
 "use client";
 import { FormDetailsMapper } from '@/components/forms/form-details/FormDetailsMapper';
 import ModalComponent from '@/components/ui/modal/Modal';
-import { Client, Personnel } from '@/domain/entities/formId';
+import { Client, Personnel, Form } from '@/domain/entities/form';
 import { useForm, useFormsByClient } from '@/domain/use-cases/form';
 import api from '@/infrastructure/api/axios';
 import { Download, History } from 'lucide-react';
@@ -26,8 +26,16 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
   const { data: session } = useSession();
   const userRole = session?.user?.role;
 
-  const { data: formsData, isLoading, error } = useFormsByClient(clientId);
-  const { data: selectedFormData, isLoading: isFormLoading } = useForm(selectedFormId || '');
+  const { data: formsResponse, isLoading, error } = useFormsByClient(clientId);
+  const { data: selectedFormResponse, isLoading: isFormLoading } = useForm(selectedFormId || '');
+
+  // Updated to match the new response structure
+  const forms = formsResponse?.data || [];
+  const selectedForm = selectedFormResponse?.form; // CHANGED: Use .form instead of .data
+  const totalCount = formsResponse?.meta?.total || 0;
+
+  console.log("test form data 1", formsResponse);
+  console.log("test form data 2", selectedFormResponse);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {
@@ -77,6 +85,10 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
       .join(' ');
   };
 
+  const getPersonnelName = (form: Form) => {
+    return `${form.personnel.firstName} ${form.personnel.lastName}`;
+  };
+
   const serviceColors = {
     PCO: "bg-blue-100 text-blue-800",
     Wellness: "bg-green-100 text-green-800",
@@ -107,43 +119,45 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
       <ModalComponent isOpen={isModalOpen && !selectedFormId} onClose={closeModal} >
 
         <div className="p-6 max-h-[80vh] overflow-y-auto">
-          {!isLoading && <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Form History for {clientName}
-            </h2>
-            <div className="relative">
-              {userRole === "Personnel Admin" && (
-                <>
-                  <button
-                    onClick={() => setShowExportMenu(!showExportMenu)}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  >
-                    <Download size={16} />
-                    Export
-                  </button>
+          {!isLoading && (
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-800">
+                Form History for {clientName}
+              </h2>
+              <div className="relative">
+                {userRole === "Personnel Admin" && (
+                  <>
+                    <button
+                      onClick={() => setShowExportMenu(!showExportMenu)}
+                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                    >
+                      <Download size={16} />
+                      Export
+                    </button>
 
-                  {showExportMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                      <button
-                        onClick={() => exportForms('pdf')}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-700 flex items-center gap-2"
-                      >
-                        <span className="text-red-500 font-medium">PDF</span>
-                        Export as PDF
-                      </button>
-                      <button
-                        onClick={() => exportForms('excel')}
-                        className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 flex items-center gap-2"
-                      >
-                        <span className="text-green-500 font-medium">Excel</span>
-                        Export as Excel
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
+                    {showExportMenu && (
+                      <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                        <button
+                          onClick={() => exportForms('pdf')}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-700 flex items-center gap-2"
+                        >
+                          <span className="text-red-500 font-medium">PDF</span>
+                          Export as PDF
+                        </button>
+                        <button
+                          onClick={() => exportForms('excel')}
+                          className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 flex items-center gap-2"
+                        >
+                          <span className="text-green-500 font-medium">Excel</span>
+                          Export as Excel
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
-          </div>}
+          )}
 
           {isLoading ? (
             <div className="text-center py-8">
@@ -154,7 +168,7 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
             <div className="text-center py-8 text-red-600">
               Error loading form history: {(error as Error).message}
             </div>
-          ) : !formsData?.forms || formsData.forms.length === 0 ? (
+          ) : forms.length === 0 ? (
             <div className="text-center py-8 text-gray-600">
               No forms found for this client.
             </div>
@@ -182,7 +196,7 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {formsData.forms.map((form, index) => (
+                    {forms.map((form, index) => (
                       <tr
                         key={form._id}
                         className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
@@ -201,10 +215,7 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
                           </span>
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
-                          {form.personnel ?
-                            `${form.personnel.firstName} ${form.personnel.lastName}` :
-                            'N/A'
-                          }
+                          {getPersonnelName(form)}
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
                           {formatDate(form.createdAt)}
@@ -226,7 +237,7 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-sm text-blue-800">
-                  <strong>Total Forms:</strong> {formsData.count} forms found
+                  <strong>Total Forms:</strong> {totalCount} forms found
                 </p>
               </div>
             </div>
@@ -240,8 +251,8 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span className="ml-3 text-gray-600">Loading form details...</span>
           </div>
-        ) : selectedFormData?.form ? (
-          <FormDetailsContent form={selectedFormData.form} />
+        ) : selectedForm ? ( // CHANGED: Check selectedForm directly
+          <FormDetailsContent form={selectedForm} />
         ) : (
           <div className="p-6 text-center text-red-600">
             Failed to load form details
@@ -253,12 +264,12 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
 };
 
 interface FormDetailsContentProps {
-  form: any;
+  form: Form;
 }
 
 const FormDetailsContent: React.FC<FormDetailsContentProps> = ({ form }) => {
-  const safeClient: Client = form.client || {};
-  const safePersonnel: Personnel = form.personnel || {};
+  const safeClient: Client = form.client;
+  const safePersonnel: Personnel = form.personnel;
 
   return (
     <div className="p-6 max-h-[80vh] overflow-y-auto">
@@ -269,7 +280,6 @@ const FormDetailsContent: React.FC<FormDetailsContentProps> = ({ form }) => {
         disableTextSelection={true}
         showWarning={true}
         enableAdvancedProtection={true}
-
       >
         <h2 className="text-2xl font-bold mb-6 text-gray-800">
           {form.title?.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Details
@@ -314,32 +324,29 @@ const FormDetailsContent: React.FC<FormDetailsContentProps> = ({ form }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600">Client ID</label>
-              <p className="mt-1 text-sm text-gray-900">{safeClient._id || 'N/A'}</p>
+              <p className="mt-1 text-sm text-gray-900">{safeClient._id}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Client Name</label>
               <p className="mt-1 text-sm text-gray-900">
-                {safeClient.firstName && safeClient.lastName
-                  ? `${safeClient.firstName} ${safeClient.lastName}`
-                  : 'N/A'
-                }
+                {`${safeClient.firstName} ${safeClient.lastName}`}
               </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Email</label>
-              <p className="mt-1 text-sm text-gray-900">{safeClient.email || 'N/A'}</p>
+              <p className="mt-1 text-sm text-gray-900">{safeClient.email}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Phone</label>
-              <p className="mt-1 text-sm text-gray-900">{safeClient.mobile || 'N/A'}</p>
+              <p className="mt-1 text-sm text-gray-900">{safeClient.mobile}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Gender</label>
-              <p className="mt-1 text-sm text-gray-900">{safeClient.gender || 'N/A'}</p>
+              <p className="mt-1 text-sm text-gray-900">{safeClient.gender}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-600">Nationality</label>
-              <p className="mt-1 text-sm text-gray-900">{safeClient.nationality || 'N/A'}</p>
+              <p className="mt-1 text-sm text-gray-900">{safeClient.nationality}</p>
             </div>
           </div>
         </div>
@@ -349,35 +356,24 @@ const FormDetailsContent: React.FC<FormDetailsContentProps> = ({ form }) => {
             Personnel Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {safePersonnel._id ? (
-              <>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Name</label>
-                  <p className="mt-1 text-sm text-gray-900">
-                    {safePersonnel.firstName} {safePersonnel.lastName}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Personnel ID</label>
-                  <p className="mt-1 text-sm text-gray-900">{safePersonnel._id}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Email</label>
-                  <p className="mt-1 text-sm text-gray-900">{safePersonnel.email || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-gray-600">Role</label>
-                  <p className="mt-1 text-sm text-gray-900">{safePersonnel.role || 'N/A'}</p>
-                </div>
-              </>
-            ) : (
-              <div className="col-span-2">
-                <label className="text-sm font-medium text-gray-600">Data Entry Personnel</label>
-                <p className="mt-1 text-sm text-gray-900">
-                  {form.formData.data_entry_personnel_full_name || 'N/A'}
-                </p>
-              </div>
-            )}
+            <div>
+              <label className="text-sm font-medium text-gray-600">Name</label>
+              <p className="mt-1 text-sm text-gray-900">
+                {safePersonnel.firstName} {safePersonnel.lastName}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Personnel ID</label>
+              <p className="mt-1 text-sm text-gray-900">{safePersonnel._id}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Email</label>
+              <p className="mt-1 text-sm text-gray-900">{safePersonnel.email}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-600">Role</label>
+              <p className="mt-1 text-sm text-gray-900">{safePersonnel.role}</p>
+            </div>
           </div>
         </div>
 
@@ -385,7 +381,7 @@ const FormDetailsContent: React.FC<FormDetailsContentProps> = ({ form }) => {
           <h3 className="text-lg font-semibold mb-4 text-gray-700 border-b pb-2 border-gray-200">
             Notes
           </h3>
-          <FormDetailsMapper form={form} formType={form.title} />
+          <FormDetailsMapper form={form} formType={form.title || ""} />
         </div>
       </ContentProtectionWrapper>
     </div>

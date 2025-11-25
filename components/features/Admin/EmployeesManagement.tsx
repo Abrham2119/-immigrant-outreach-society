@@ -19,14 +19,15 @@ export default function EmployeesManagement() {
   const [roleFilter, setRoleFilter] = useState("all");
   const limit = 10;
 
-  const { data: employeesData, isLoading, refetch } = useEmployees(currentPage, limit, search, roleFilter);
+  const { data: employeesResponse, isLoading, refetch } = useEmployees(currentPage, limit, search, roleFilter);
   const createEmployeeMutation = useCreateEmployee();
   const updateEmployeeMutation = useUpdateEmployee();
   const deleteEmployeeMutation = useDeleteEmployee();
 
-  const employees = employeesData?.employees || [];
-  const totalCount = employeesData?.count || 0;
-  const totalPages = Math.ceil(totalCount / limit);
+  const employees = employeesResponse?.data || [];
+  const meta = employeesResponse?.meta;
+  const totalCount = meta?.total || 0;
+  const totalPages = meta?.totalPages || 1;
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => {

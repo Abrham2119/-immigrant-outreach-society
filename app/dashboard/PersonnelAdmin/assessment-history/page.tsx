@@ -1,12 +1,12 @@
 "use client";
 import { Pagination } from '@/components/client/Pagination';
-import { ClientFormsHistory } from '@/components/personnel-appointments/ClientFormsHistory';
 import ModalComponent from '@/components/ui/modal/Modal';
 import { useForms } from '@/domain/use-cases/form';
 import { Eye, User } from 'lucide-react';
 import { useState } from 'react';
 import { FormDetails } from './FormDetails';
-
+import { ClientFormsHistory } from '@/components/personnel-appointments/ClientFormsHistory';
+import { Form } from '@/domain/entities/form';
 
 // Service options
 const serviceOptions = [
@@ -45,9 +45,14 @@ export default function FormsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
 
+  const { data: formsResponse, isLoading, error } = useForms(pageNum, pageSize, search, service);
 
-  const { data, isLoading, error } = useForms(pageNum, pageSize, search, service);
-  console.log(data)
+  // Updated to match the new response structure
+  const forms = formsResponse?.data || [];
+  const meta = formsResponse?.meta;
+  const totalPages = meta?.totalPages || 1;
+    console.log("this is ",forms)
+
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -82,24 +87,10 @@ export default function FormsPage() {
     });
   };
 
-  // Function to get client display name
-  const getClientName = (form: any) => {
-    if (form.client) {
-      return `${form.client.firstName} ${form.client.lastName}`;
-    }
-
-    // Try to get name from formData
-    if (form.formData.client_name) {
-      return form.formData.client_name;
-    }
-
-    if (form.formData['Referral Individual\'s Name']) {
-      return form.formData['Referral Individual\'s Name'];
-    }
-
-    return 'N/A';
+  // Function to get client display name - SIMPLIFIED
+  const getClientName = (form: Form) => {
+    return `${form.client.firstName} ${form.client.lastName}`;
   };
-
 
   const formatFormTitle = (title: string | undefined): string => {
     if (!title) return 'N/A';
@@ -108,23 +99,10 @@ export default function FormsPage() {
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
-  // Function to get personnel display name
-  const getPersonnelName = (form: any) => {
 
-    if (form.personnel) {
-      return `${form.personnel.firstName} ${form.personnel.lastName}`;
-    }
-
-    // Try to get name from formData
-    if (form.formData.data_entry_personnel_full_name) {
-      return form.formData.data_entry_personnel_full_name;
-    }
-
-    if (form.formData['Data Entry personnel full name']) {
-      return form.formData['Data Entry personnel full name'];
-    }
-
-    return 'N/A';
+  // Function to get personnel display name - SIMPLIFIED
+  const getPersonnelName = (form: Form) => {
+    return `${form.personnel.firstName} ${form.personnel.lastName}`;
   };
 
   if (error) {
@@ -201,20 +179,20 @@ export default function FormsPage() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={6}>
+                  <td colSpan={7}>
                     <div className="w-full min-h-[60vh] flex items-center justify-center text-center">
                       Loading forms...
                     </div>
                   </td>
                 </tr>
-              ) : data?.forms?.length === 0 ? (
+              ) : forms.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-4">
+                  <td colSpan={7} className="text-center py-4">
                     No forms found.
                   </td>
                 </tr>
               ) : (
-                data?.forms?.map((form, index) => (
+                forms.map((form, index) => (
                   <tr
                     key={form._id}
                     className={`${index % 2 === 0 ? "bg-white" : "bg-[#F7F7F7]"}`}
@@ -234,31 +212,26 @@ export default function FormsPage() {
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       {formatFormTitle(form.title)}
                     </td>
-
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${serviceColors[form.service as keyof typeof serviceColors] || "bg-gray-100 text-gray-800"
                         }`}>
                         {form.service}
                       </span>
                     </td>
-
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       {formatDate(form.createdAt)}
                     </td>
                     <td className="px-4 py-4 flex gap-2 items-center justify-center text-center font-medium">
                       <button
-                        onClick={() => form._id && openModal(form._id || "")}
-                        className={`text-blue-600 hover:text-blue-800 transition-colors ${!form._id ? 'opacity-50 cursor-not-allowed' : ''
-                          }`}
-                        title={form?._id ? "View Client Details" : "No client data available"}
-                        disabled={!form?._id}
+                        onClick={() => openModal(form._id)}
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                        title="View Form Details"
                       >
                         <Eye size={16} />
                       </button>
                       <ClientFormsHistory
-                        clientId={form.client?._id || ""}
-                        clientName={`${form.client?.firstName} 
-                                                ${form.client?.lastName}`}
+                        clientId={form.client._id}
+                        clientName={getClientName(form)}
                       />
                     </td>
                   </tr>
@@ -268,10 +241,10 @@ export default function FormsPage() {
           </table>
         </div>
 
-        {data && (
+        {formsResponse && (
           <Pagination
             pageNum={pageNum}
-            totalPages={data.pages || 1}
+            totalPages={totalPages}
             onPageChange={handlePagination}
           />
         )}

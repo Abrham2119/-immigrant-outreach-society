@@ -1,35 +1,46 @@
 // domain/entities/form.ts
 export interface Form {
   _id: string;
-  client?: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    mobile: string;
-    gender: string;
-    nationality: string;
-    immigrationStatus: string;
-    language: string;
-    address: string;
-    birthDate: string;
-    services: string[];
-    status: string;
-    createdAt: string;
-    updatedAt: string;
-  };
-  personnel?: {
-    _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    role: string;
-    createdAt: string;
-    updatedAt: string;
-  };
+  client: Client;
+  personnel: Personnel;
   service: string;
-  title?:string
+  title?: string;
   formData: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface Client {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  gender: string;
+  email: string;
+  mobile: string;
+  nationality: string;
+  immigrationStatus: string;
+  language: string;
+  address: string;
+  birthDate: string;
+  message?: string;
+  services: string[];
+  status: string;
+  consent?: boolean;
+  registeredBy?: string | null;
+  phone?: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+}
+
+export interface Personnel {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: string;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -37,16 +48,23 @@ export interface Form {
 
 export interface FormsResponse {
   success: boolean;
-  count: number;
-  forms: Form[];
-  pages?: number;
+  message: string;
+  data: Form[];
+  meta: {
+    total: number;
+    count: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
 }
 
 export interface FormResponse {
   success: boolean;
-  forms: Form;
+  message: string;
+  data: Form;
 }
-
-
-
-

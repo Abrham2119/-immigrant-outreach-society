@@ -3,11 +3,11 @@ export interface FormResponseId {
   form: Form; 
 }
 
-interface Form {
+export interface Form {
   _id: string;
   client: Client; 
   title: string;
-  personnel: Personnel
+  personnel: Personnel;
   service: string;
   formData: Record<string, any>;
   createdAt: string;

@@ -6,13 +6,19 @@ import {
   deleteEmployeeService,
   getEmployeeByIdService 
 } from '@/infrastructure/api/employeeService';
-import { CreateEmployeeRequest, UpdateEmployeeRequest, Employee } from '../entities/employee';
+import { CreateEmployeeRequest, UpdateEmployeeRequest, Employee, EmployeesResponse } from '../entities/employee';
 
 export async function createEmployeeUseCase(employee: CreateEmployeeRequest) {
   return createEmployeeService(employee);
 }
 
-export async function getEmployeesUseCase(page: number = 1, limit: number = 10, search: string = "", role: string = "all") {
+// application/useCases/employeeUseCases.ts
+export async function getEmployeesUseCase(
+  page: number = 1, 
+  limit: number = 10, 
+  search: string = "", 
+  role: string = "all"
+): Promise<EmployeesResponse> {
   return getEmployeesService(page, limit, search, role);
 }
 

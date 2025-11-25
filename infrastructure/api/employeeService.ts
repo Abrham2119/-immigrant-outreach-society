@@ -13,7 +13,13 @@ export async function createEmployeeService(employee: CreateEmployeeRequest): Pr
   return data;
 }
 
-export async function getEmployeesService(page: number = 1, limit: number = 10, search: string = "", role: string = "all"): Promise<EmployeesResponse> {
+// application/services/employeeService.ts
+export async function getEmployeesService(
+  page: number = 1, 
+  limit: number = 10, 
+  search: string = "", 
+  role: string = "all"
+): Promise<EmployeesResponse> {
   const params = new URLSearchParams();
   params.append('page', page.toString());
   params.append('limit', limit.toString());
@@ -23,7 +29,6 @@ export async function getEmployeesService(page: number = 1, limit: number = 10, 
   const { data } = await api.get(`/employees/all?${params.toString()}`);
   return data;
 }
-
 export async function updateEmployeeService(employeeId: string, updates: UpdateEmployeeRequest): Promise<EmployeeResponse> {
   const { data } = await api.put(`/employees/${employeeId}`, updates);
   return data;

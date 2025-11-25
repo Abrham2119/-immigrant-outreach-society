@@ -27,8 +27,19 @@ export interface UpdateEmployeeRequest {
 
 export interface EmployeesResponse {
   success: boolean;
-  count: number;
-  employees: Employee[];
+  message: string;
+  data: Employee[];
+  meta: {
+    total: number;
+    count: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
 }
 
 export interface EmployeeResponse {
