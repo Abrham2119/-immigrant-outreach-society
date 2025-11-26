@@ -1,15 +1,11 @@
-import {
-  getClientsByPersonnelUseCase
-} from '@/infrastructure/api/personnelClientService';
-import { useQuery } from '@tanstack/react-query';
+import { getClientsByPersonnelApi } from '@/infrastructure/api/personnelClientService';
+import { PersonnelFormsResponse } from '../entities/assesments/personnelClient';
 
-export const useClientsByPersonnel = (
+export const getClientsByPersonnelUseCase = async (
+  personnelId: string,
   page: number = 1,
-  pageSize: number = 10,
+  limit: number = 10,
   search: string = ''
-) => {
-  return useQuery({
-    queryKey: ['personnelClients', page, pageSize, search],
-    queryFn: () => getClientsByPersonnelUseCase( page, pageSize, search),
-  });
+): Promise<PersonnelFormsResponse> => {
+  return getClientsByPersonnelApi(personnelId, page, limit, search);
 };

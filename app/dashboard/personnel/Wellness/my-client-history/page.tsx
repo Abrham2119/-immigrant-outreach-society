@@ -1,13 +1,12 @@
 "use client";
 import { useState } from 'react';
-import { useClientsByPersonnel } from '@/domain/use-cases/personnelClient';
+import { useClientsByPersonnel } from '@/application/hooks/usePersonnelClient';
 import { Pagination } from '@/components/client/Pagination';
 import { Eye, User } from 'lucide-react';
 import { ClientFormsHistory } from '@/components/personnel-appointments/ClientFormsHistory';
 import ModalComponent from '@/components/ui/modal/Modal';
 import { FormDetails } from './FormDetails';
 
-// Service options
 const serviceOptions = [
   { label: 'All Services', value: 'all' },
   { label: 'PCO', value: 'PCO' },
@@ -22,7 +21,6 @@ const serviceOptions = [
   { label: 'Policy', value: 'Policy' }
 ];
 
-// Service colors mapping
 const serviceColors = {
   PCO: "bg-blue-100 text-blue-800",
   Wellness: "bg-green-100 text-green-800",
@@ -70,7 +68,6 @@ export default function PersonnelClientsPage() {
     setSelectedFormId(null);
   };
 
-  // Function to format date
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -79,29 +76,6 @@ export default function PersonnelClientsPage() {
     });
   };
 
-  // Function to get client display name
-  const getClientName = (form: any) => {
-    if (form.client && typeof form.client === 'object') {
-      return `${form.client.firstName} ${form.client.lastName}`;
-    }
-
-    // Try to get name from formData
-    if (form.formData?.client_name) {
-      return form.formData.client_name;
-    }
-
-    if (form.formData?.["Referral Individual's Name"]) {
-      return form.formData["Referral Individual's Name"];
-    }
-
-    if (form.formData?.client_full_name) {
-      return form.formData.client_full_name;
-    }
-
-    return 'N/A';
-  };
-
-  // Function to format form title
   const formatFormTitle = (title: string | undefined): string => {
     if (!title) return 'N/A';
     return title
@@ -110,27 +84,25 @@ export default function PersonnelClientsPage() {
       .join(' ');
   };
 
-  // Function to get personnel display name
-  const getPersonnelName = (form: any) => {
-    if (form.personnel && typeof form.personnel === 'object') {
-      return `${form.personnel.firstName} ${form.personnel.lastName}`;
+  // Safe function to get client name
+  const getClientName = (form: any) => {
+    if (form?.client?.firstName && form?.client?.lastName) {
+      return `${form.client.firstName} ${form.client.lastName}`;
     }
-
-    // Try to get name from formData
-    if (form.formData?.data_entry_personnel_full_name) {
-      return form.formData.data_entry_personnel_full_name;
-    }
-
-    if (form.formData?.["Data Entry personnel full name"]) {
-      return form.formData["Data Entry personnel full name"];
-    }
-
-    if (form.formData?.sql_staff_full_name) {
-      return form.formData.sql_staff_full_name;
-    }
-
     return 'N/A';
   };
+
+  // Safe function to get personnel name
+  const getPersonnelName = (form: any) => {
+    if (form?.personnel?.firstName && form?.personnel?.lastName) {
+      return `${form.personnel.firstName} ${form.personnel.lastName}`;
+    }
+    return 'N/A';
+  };
+
+  const forms = data?.data || [];
+  const totalPages = data?.meta?.totalPages || 1;
+  const totalCount = data?.meta?.total || 0;
 
   if (error) {
     return (
@@ -147,7 +119,6 @@ export default function PersonnelClientsPage() {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
-        {/* Header Actions */}
         <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-3">
           <div className="flex border-[#000000]/50 border items-center rounded-[10px] md:w-[531px] h-[34px]">
             <input
@@ -212,20 +183,20 @@ export default function PersonnelClientsPage() {
                     </div>
                   </td>
                 </tr>
-              ) : data?.forms?.length === 0 ? (
+              ) : forms.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-4">
                     No forms found.
                   </td>
                 </tr>
               ) : (
-                data?.forms?.map((form: any, index: number) => (
+                forms.map((form: any, index: number) => (
                   <tr
                     key={form._id}
                     className={`${index % 2 === 0 ? "bg-white" : "bg-[#F7F7F7]"}`}
                   >
                     <td className="py-3 pl-3 whitespace-nowrap text-[14px] font-medium text-center">
-                      {form._id.substring(0, 8)}...
+                      {form._id?.substring(0, 8)}...
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       <div className="flex items-center justify-center gap-2">
@@ -242,11 +213,11 @@ export default function PersonnelClientsPage() {
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${serviceColors[form.service as keyof typeof serviceColors] || "bg-gray-100 text-gray-800"
                         }`}>
-                        {form.service}
+                        {form.service || 'N/A'}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
-                      {formatDate(form.createdAt)}
+                      {form.createdAt ? formatDate(form.createdAt) : 'N/A'}
                     </td>
                     <td className="px-4 py-4 flex gap-2 items-center justify-center text-center font-medium">
                       <button
@@ -270,10 +241,10 @@ export default function PersonnelClientsPage() {
           </table>
         </div>
 
-        {data && (
+        {data && totalCount > 0 && (
           <Pagination
             pageNum={pageNum}
-            totalPages={data.pages || 1}
+            totalPages={totalPages}
             onPageChange={handlePagination}
           />
         )}
