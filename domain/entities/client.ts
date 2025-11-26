@@ -1,3 +1,11 @@
+export interface RegisteredBy {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
 export interface Client {
   _id: string;
   firstName: string;
@@ -13,14 +21,15 @@ export interface Client {
   message?: string;
   services: string[];
   status: string;
-  consent?:boolean
-  registeredBy: string | null;
+  consent?: boolean;
+  registeredBy: RegisteredBy | null;
   createdAt: string;
   updatedAt: string;  
   __v?: number;
 }
-export interface ClientGetByID{
-  client:Client
+
+export interface ClientGetByID {
+  client: Client;
   success: boolean;
 }
 export interface ClientsResponse {

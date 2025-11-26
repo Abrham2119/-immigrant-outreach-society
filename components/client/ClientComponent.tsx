@@ -413,7 +413,10 @@ export default function ClientsPage() {
             <input
               type="text"
               value={search}
-              onChange={(e) => handleSearchChange(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value.replace(/[^a-zA-Z0-9\s.@]/g, '');
+                handleSearchChange(value);
+              }}
               placeholder="Search clients..."
               className="outline-none placeholder:text-[16px] px-2 w-full"
             />

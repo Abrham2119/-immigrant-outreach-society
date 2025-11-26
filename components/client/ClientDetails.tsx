@@ -209,11 +209,23 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ id }) => {
             </span>
           </div>
 
-          {/* Registered By Information - Only show if not null */}
+          {/* Consent Status */}
+          <div>
+            <p className="text-sm text-gray-600">Consent Given</p>
+            <span className={`px-2 py-1 rounded-full text-xs ${client.consent ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+              {client.consent ? "Yes" : "No"}
+            </span>
+          </div>
+
+          {/* Registered By Information - Now with email */}
           {client.registeredBy && (
             <div>
               <p className="text-sm text-gray-600">Registered By</p>
-              <p className="text-gray-800 font-medium">{client.registeredBy}</p>
+              <p className="text-gray-800 font-medium">
+                {client.registeredBy.firstName} {client.registeredBy.lastName} ({client.registeredBy.role})
+              </p>
+              <p className="text-sm text-gray-600 mt-1">Registry Email</p>
+              <p className="text-gray-800 font-medium">{client.registeredBy.email}</p>
             </div>
           )}
 
