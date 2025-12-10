@@ -11,7 +11,7 @@ interface UsePersonnelAppointmentsParams {
   search?: string;
 }
 
-export const usePersonnelAppointments = (params: UsePersonnelAppointmentsParams) => {  
+export const usePersonnelAppointments = (params: UsePersonnelAppointmentsParams, p0: { enabled: boolean; }) => {  
   return useQuery({
     queryKey: ["personnelAppointments", params],
     queryFn: () => getPersonnelAppointmentsUseCase(params.personnelId, params.status, params.page, params.limit, params.search),

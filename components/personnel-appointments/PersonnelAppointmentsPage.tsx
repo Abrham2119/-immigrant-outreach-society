@@ -1,23 +1,24 @@
 "use client";
+
 import { usePersonnelAppointmentManagement } from '@/application/hooks/usePersonnelAppointments';
 import { assessmentForms } from '@/domain/constants/assessmentForms';
 import { AssessmentFormType } from '@/domain/constants/AssessmentFormType';
 import { AppointmentResponse, AppointmentStatus } from '@/domain/entities/appointmentPersonnel';
-import { Eye, FileText, User } from 'lucide-react';
+import { Eye, FileText, User, Paperclip } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import ModalComponent from '../ui/modal/Modal';
 import { PersonnelAppointmentDetails } from './PersonnelAppointmentDetails';
 import { ClientFormsHistory } from './ClientFormsHistory';
 import { Pagination } from '@/components/client/Pagination';
+import { ClientDocumentsModal } from './ClientDocumentsModal'; // Make sure this is imported
 
 const statusColors = {
   booked: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  'no-show': "bg-orange-100 text-orange-800",
-  arrived: "bg-purple-100 text-purple-800",
-  with_personnel: "bg-indigo-100 text-indigo-800",
+  rejected: "bg-red-100 text-red-800",
+  emergency_alert: "bg-red-500 text-white",
+  accepted: "bg-green-100 text-green-800",
 };
 
 interface PersonnelAppointmentsPageProps {
@@ -34,24 +35,37 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   const [pageSize, setPageSize] = useState<number>(8);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
+  const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false); // Add this state
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentResponse | null>(null);
   const [selectedAppointmentForAssessment, setSelectedAppointmentForAssessment] = useState<AppointmentResponse | null>(null);
+  const [selectedClientForDocuments, setSelectedClientForDocuments] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState<string | null>(null);
+  const [rejectionAppointmentId, setRejectionAppointmentId] = useState<string | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionError, setRejectionError] = useState('');
   const [remark, setRemark] = useState<string>('');
   const router = useRouter();
 
   const { personnelId, usePersonnelAppointments, useUpdateAppointmentStatus } = usePersonnelAppointmentManagement();
 
+  // ALWAYS call hooks at the top level - never conditionally
   const { data: appointmentsData, isLoading, error } = usePersonnelAppointments({
-    personnelId: personnelId!,
+    personnelId: personnelId || '', 
     status: 'booked',
     page: pageNum,
     limit: pageSize,
     search: search
+  }, {
+    enabled: !!personnelId,
   });
 
   const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
+  // Always calculate these, even if data is undefined
   const appointments = appointmentsData?.data || [];
   const totalPages = appointmentsData?.meta?.totalPages || 1;
   const totalCount = appointmentsData?.meta?.total || 0;
@@ -87,6 +101,16 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     setSelectedAppointmentForAssessment(null);
   };
 
+  const openDocumentsModal = (clientId: string, clientName: string) => {
+    setSelectedClientForDocuments({ id: clientId, name: clientName });
+    setIsDocumentsModalOpen(true);
+  };
+
+  const closeDocumentsModal = () => {
+    setIsDocumentsModalOpen(false);
+    setSelectedClientForDocuments(null);
+  };
+
   const handleFormSelect = (formSlug: string) => {
     if (selectedAppointmentForAssessment && personnelId) {
       const formPath = `/dashboard/personnel/Wellness/assessment/${selectedAppointmentForAssessment.client._id}/${formSlug}`;
@@ -95,14 +119,36 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     closeAssessmentModal();
   };
 
-  const handleStatusUpdate = async (appointmentId: string, newStatus: string) => {
-    setStatusUpdateLoading(appointmentId);
+  const handleRejectionClick = (clientId: string) => {
+    setRejectionAppointmentId(clientId);
+    setRejectionReason('');
+    setRejectionError('');
+    setIsRejectionModalOpen(true);
+  };
+
+  const confirmRejection = async () => {
+    if (!rejectionReason.trim()) {
+      setRejectionError('Reason for rejection is required');
+      return;
+    }
+
+    if (rejectionAppointmentId) {
+      await handleStatusUpdate(rejectionAppointmentId, 'rejected', rejectionReason);
+      setIsRejectionModalOpen(false);
+      setRejectionAppointmentId(null);
+      setRejectionReason('');
+      setRejectionError('');
+    }
+  };
+
+  const handleStatusUpdate = async (clientId: string, newStatus: string, reason?: string) => {
+    setStatusUpdateLoading(clientId);
     try {
       await updateAppointmentStatusMutation.mutateAsync({
-        appointmentId,
+        appointmentId: clientId,
         statusData: {
           status: newStatus,
-          ...(remark && { remark })
+          ...((reason || remark) && { remark: reason || remark })
         }
       });
       setRemark('');
@@ -129,23 +175,35 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
     return `${displayHour}:${minutes} ${period}`;
   };
 
-  const StatusDropdown = ({ appointment }: { appointment: AppointmentResponse }) => (
-    <select
-      value={appointment.status}
-      onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
-      disabled={statusUpdateLoading === appointment._id}
-      className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
-        } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
-    >
-      <option value="booked">Booked</option>
-      <option value="arrived">Arrived</option>
-      <option value="with_personnel">With Personnel</option>
-      <option value="completed">Completed</option>
-      <option value="cancelled">Cancelled</option>
-      <option value="no-show">No Show</option>
-    </select>
-  );
+  const StatusDropdown = ({ appointment }: { appointment: AppointmentResponse }) => {
+    const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const newStatus = e.target.value;
 
+      if (newStatus === 'rejected') {
+        handleRejectionClick(appointment.client._id);
+      } else {
+        handleStatusUpdate(appointment.client._id, newStatus);
+      }
+    };
+
+    return (
+      <select
+        value={appointment.client.status}
+        onChange={handleStatusChange}
+        disabled={statusUpdateLoading === appointment.client._id}
+        className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.client.status as keyof typeof statusColors] ||
+          "bg-gray-100 text-gray-800"
+          } ${statusUpdateLoading === appointment.client._id ? "opacity-50" : ""}`}
+      >
+        <option value="booked">Booked</option>
+        <option value="completed">Completed</option>
+        <option value="rejected">Rejected</option>
+        <option value="emergency_alert">Emergency Alert</option>
+      </select>
+    );
+  };
+
+  // Early return after all hooks have been called
   if (!personnelId) {
     return (
       <div className="space-y-6">
@@ -173,13 +231,13 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">      
+      <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
 
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Client Appointments</h1>
           <p className="text-gray-600">Manage client scheduled appointments</p>
         </div>
-         <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-3">
+        <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-3">
           <div className="flex border-[#000000]/50 border items-center rounded-[10px] md:w-[531px] h-[34px]">
             <input
               type="text"
@@ -303,6 +361,20 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                         </div>
                       </button>
+                      <button
+                        onClick={() => openDocumentsModal(
+                          appointment.client._id,
+                          `${appointment.client.firstName} ${appointment.client.lastName}`
+                        )}
+                        className="text-purple-600 hover:text-purple-800 transition-colors relative group"
+                        title="Client Documents"
+                      >
+                        <Paperclip size={16} />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
+                          Client Documents
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                        </div>
+                      </button>
                       <ClientFormsHistory
                         clientId={appointment.client._id}
                         clientName={`${appointment.client.firstName} ${appointment.client.lastName}`}
@@ -326,6 +398,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
         )}
       </div>
 
+      {/* Modals */}
       <ModalComponent isOpen={isModalOpen} onClose={closeModal}>
         {selectedAppointment && <PersonnelAppointmentDetails appointment={selectedAppointment} />}
       </ModalComponent>
@@ -370,6 +443,65 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
           )}
         </div>
       </ModalComponent>
+
+      <ModalComponent isOpen={isRejectionModalOpen} onClose={() => setIsRejectionModalOpen(false)}>
+        <div className="w-full max-w-md p-6">
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Reject Appointment</h2>
+          <p className="text-gray-600 mb-6">Please provide a reason for rejecting this appointment.</p>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Reason for Rejection *
+            </label>
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => {
+                setRejectionReason(e.target.value);
+                if (rejectionError) setRejectionError('');
+              }}
+              placeholder="Enter the reason for rejecting this appointment..."
+              className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              required
+            />
+            {rejectionError && (
+              <p className="text-red-500 text-sm mt-1">{rejectionError}</p>
+            )}
+          </div>
+
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => {
+                setIsRejectionModalOpen(false);
+                setRejectionReason('');
+                setRejectionError('');
+              }}
+              className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmRejection}
+              disabled={!rejectionReason.trim()}
+              className={`px-4 py-2 text-white rounded-md transition-colors ${rejectionReason.trim()
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-red-400 cursor-not-allowed'
+                }`}
+            >
+              Confirm Rejection
+            </button>
+          </div>
+        </div>
+      </ModalComponent>
+
+      {/* Client Documents Modal */}
+      {selectedClientForDocuments && (
+        <ClientDocumentsModal
+          clientId={selectedClientForDocuments.id}
+          clientName={selectedClientForDocuments.name}
+          isOpen={isDocumentsModalOpen}
+          onClose={closeDocumentsModal}
+        />
+      )}
     </div>
   );
 };

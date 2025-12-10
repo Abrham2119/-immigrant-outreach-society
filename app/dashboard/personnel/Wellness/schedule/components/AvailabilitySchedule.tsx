@@ -5,6 +5,7 @@ import { Rule } from "@/domain/entities/appointment";
 import { useSession } from "next-auth/react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useTranslation } from "@/components/providers/translation.provider";
 
 interface AvailabilityScheduleProps {
     existingRules?: Rule[];
@@ -15,6 +16,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 }) => {
     const { data: session } = useSession();
     const { createRuleMutation } = useRuleManagement();
+    const { t } = useTranslation(); // Added hook
 
     const personnelId = session?.user?.id;
 
@@ -99,7 +101,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 
     useEffect(() => {
         if (createRuleMutation.isSuccess) {
-            toast.success("Availability saved successfully!", {
+            toast.success(t('availabilitySavedSuccessfully', "Availability saved successfully!"), {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -114,7 +116,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             const error = createRuleMutation.error as any;
             const errorMessage = error?.response?.data?.message || 
                                error?.message || 
-                               "Error saving availability";
+                               t('errorSavingAvailability', "Error saving availability");
             
             toast.error(errorMessage, {
                 position: "top-right",
@@ -158,14 +160,14 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 
         // Validate global time range
         if (!validateTimeRange(formData.startTime, formData.endTime)) {
-            newErrors.global = "Start time must be before end time";
+            newErrors.global = t('startTimeMustBeBeforeEndTime', "Start time must be before end time");
         }
 
         // Validate global time bounds
         if (!validateTimeWithinBounds(formData.startTime)) {
-            newErrors.global = "Start time must be between 8:00 AM and 6:00 PM";
+            newErrors.global = t('startTimeMustBeBetween8am6pm', "Start time must be between 8:00 AM and 6:00 PM");
         } else if (!validateTimeWithinBounds(formData.endTime)) {
-            newErrors.global = "End time must be between 8:00 AM and 6:00 PM";
+            newErrors.global = t('endTimeMustBeBetween8am6pm', "End time must be between 8:00 AM and 6:00 PM");
         }
 
         // Validate individual day time ranges and bounds
@@ -173,11 +175,11 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             const dayNum = parseInt(dayId);
             if (availability.selected) {
                 if (!validateTimeRange(availability.startTime, availability.endTime)) {
-                    dayErrors[dayNum] = "Start time must be before end time";
+                    dayErrors[dayNum] = t('startTimeMustBeBeforeEndTime', "Start time must be before end time");
                 } else if (!validateTimeWithinBounds(availability.startTime)) {
-                    dayErrors[dayNum] = "Start time must be between 8:00 AM and 6:00 PM";
+                    dayErrors[dayNum] = t('startTimeMustBeBetween8am6pm', "Start time must be between 8:00 AM and 6:00 PM");
                 } else if (!validateTimeWithinBounds(availability.endTime)) {
-                    dayErrors[dayNum] = "End time must be between 8:00 AM and 6:00 PM";
+                    dayErrors[dayNum] = t('endTimeMustBeBetween8am6pm', "End time must be between 8:00 AM and 6:00 PM");
                 }
             }
         });
@@ -233,17 +235,17 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
         if (!validateTimeRange(startTime, endTime)) {
             setErrors(prev => ({
                 ...prev,
-                global: "Start time must be before end time"
+                global: t('startTimeMustBeBeforeEndTime', "Start time must be before end time")
             }));
         } else if (!validateTimeWithinBounds(startTime)) {
             setErrors(prev => ({
                 ...prev,
-                global: "Start time must be between 8:00 AM and 6:00 PM"
+                global: t('startTimeMustBeBetween8am6pm', "Start time must be between 8:00 AM and 6:00 PM")
             }));
         } else if (!validateTimeWithinBounds(endTime)) {
             setErrors(prev => ({
                 ...prev,
-                global: "End time must be between 8:00 AM and 6:00 PM"
+                global: t('endTimeMustBeBetween8am6pm', "End time must be between 8:00 AM and 6:00 PM")
             }));
         } else {
             setErrors(prev => ({
@@ -283,7 +285,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             if (!validateTimeRange(newStartTime, newEndTime)) {
                 setErrors(prev => {
                     const updatedDays = { ...prev.days };
-                    updatedDays[dayId] = "Start time must be before end time";
+                    updatedDays[dayId] = t('startTimeMustBeBeforeEndTime', "Start time must be before end time");
                     return {
                         ...prev,
                         days: updatedDays
@@ -292,7 +294,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             } else if (!validateTimeWithinBounds(newStartTime)) {
                 setErrors(prev => {
                     const updatedDays = { ...prev.days };
-                    updatedDays[dayId] = "Start time must be between 8:00 AM and 6:00 PM";
+                    updatedDays[dayId] = t('startTimeMustBeBetween8am6pm', "Start time must be between 8:00 AM and 6:00 PM");
                     return {
                         ...prev,
                         days: updatedDays
@@ -301,7 +303,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             } else if (!validateTimeWithinBounds(newEndTime)) {
                 setErrors(prev => {
                     const updatedDays = { ...prev.days };
-                    updatedDays[dayId] = "End time must be between 8:00 AM and 6:00 PM";
+                    updatedDays[dayId] = t('endTimeMustBeBetween8am6pm', "End time must be between 8:00 AM and 6:00 PM");
                     return {
                         ...prev,
                         days: updatedDays
@@ -334,7 +336,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
         e.preventDefault();
 
         if (!personnelId) {
-            toast.error("Please log in to set your availability.", {
+            toast.error(t('pleaseLoginToSetAvailability', "Please log in to set your availability."), {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -343,7 +345,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 
         // Validate all times before submission
         if (!validateAllTimes()) {
-            toast.error("Please fix the validation errors before submitting.", {
+            toast.error(t('fixValidationErrorsBeforeSubmitting', "Please fix the validation errors before submitting."), {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -352,7 +354,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 
         // Ensure at least one day is selected
         if (formData.weekdays.length === 0) {
-            toast.error("Please select at least one day.", {
+            toast.error(t('pleaseSelectAtLeastOneDay', "Please select at least one day."), {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -380,7 +382,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
             <div className="max-w-2xl mx-auto p-6">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-yellow-800">
-                        Please log in to set your availability.
+                        {t('pleaseLoginToSetAvailability', "Please log in to set your availability.")}
                     </p>
                 </div>
             </div>
@@ -391,9 +393,11 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
         <>
             <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow">
                 <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-900">Weekly Worrking hours</h3>
+                    <h3 className="text-xl font-semibold text-gray-900">
+                        {t('weeklyWorkingHours', "Weekly Working hours")}
+                    </h3>
                     <p className="text-gray-600 mt-1 text-sm">
-                        Please select time that you will be available to give service
+                        {t('selectTimeAvailableForService', "Please select time that you will be available to give service")}
                     </p>
                 </div>
 
@@ -401,12 +405,12 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                     {/* Global Time Settings */}
                     <div className="p-4 bg-gray-50 rounded-lg">
                         <h4 className="font-medium text-gray-900 mb-3 text-sm">
-                            Global Time Settings (8:00 AM - 6:00 PM)
+                            {t('globalTimeSettings8am6pm', "Global Time Settings (8:00 AM - 6:00 PM)")}
                         </h4>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Start Time
+                                    {t('startTime', "Start Time")}
                                 </label>
                                 <input
                                     type="time"
@@ -424,7 +428,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    End Time
+                                    {t('endTime', "End Time")}
                                 </label>
                                 <input
                                     type="time"
@@ -445,7 +449,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                             <p className="text-red-600 text-xs mt-2">{errors.global}</p>
                         )}
                         <p className="text-xs text-gray-500 mt-2">
-                            Times must be between 8:00 AM and 6:00 PM (08:00 - 18:00)
+                            {t('timesMustBeBetween8am6pm', "Times must be between 8:00 AM and 6:00 PM (08:00 - 18:00)")}
                         </p>
                     </div>
 
@@ -455,16 +459,16 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                             <thead>
                                 <tr className="bg-gray-50">
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        Day
+                                        {t('day', "Day")}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        Start Time
+                                        {t('startTime', "Start Time")}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        End Time
+                                        {t('endTime', "End Time")}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        Available
+                                        {t('available', "Available")}
                                     </th>
                                 </tr>
                             </thead>
@@ -531,7 +535,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                     {errors.days && Object.keys(errors.days).length > 0 && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                             <p className="text-red-800 text-sm font-medium mb-2">
-                                Time range errors:
+                                {t('timeRangeErrors', "Time range errors:")}
                             </p>
                             <ul className="text-red-700 text-sm list-disc list-inside">
                                 {Object.entries(errors.days).map(([dayId, error]) => {
@@ -555,7 +559,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                             htmlFor="endDate"
                             className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                            End Date (optional)
+                            {t('endDateOptional', "End Date (optional)")}
                         </label>
                         <input
                             type="date"
@@ -571,7 +575,9 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 
                     {/* Timezone */}
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="font-medium text-gray-900 mb-2">Time zone</p>
+                        <p className="font-medium text-gray-900 mb-2">
+                            {t('timeZone', "Time zone")}
+                        </p>
                         <label className="flex items-center text-sm text-gray-700">
                             <input
                                 type="checkbox"
@@ -579,7 +585,9 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                                 readOnly
                                 className="h-4 w-4 text-blue-600 border-gray-200 rounded"
                             />
-                            <span className="ml-2">Mountain Time (Canada)</span>
+                            <span className="ml-2">
+                                {t('mountainTimeCanada', "Mountain Time (Canada)")}
+                            </span>
                         </label>
                     </div>
 
@@ -600,9 +608,9 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Saving...
+                                    {t('saving', "Saving...")}
                                 </div>
-                            ) : "Save Availability"}
+                            ) : t('saveAvailability', "Save Availability")}
                         </button>
                     </div>
                 </form>

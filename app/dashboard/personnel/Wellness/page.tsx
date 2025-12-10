@@ -1,6 +1,7 @@
 // components/AppointmentDashboard.tsx
 'use client';
 
+import { useTranslation } from '@/components/providers/translation.provider';
 import { useState } from 'react';
 
 interface Appointment {
@@ -15,6 +16,8 @@ interface Appointment {
 }
 
 export default function AppointmentDashboard() {
+  const { t } = useTranslation(); 
+  
   const [appointments, setAppointments] = useState<Appointment[]>([
     {
       id: '1',
@@ -74,32 +77,36 @@ export default function AppointmentDashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Appointment Dashboard</h1>
-          <p className="text-gray-600 mt-2">Manage your personal appointments and schedule</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {t('appointmentDashboard', 'Appointment Dashboard')}
+          </h1>
+          <p className="text-gray-600 mt-2">
+            {t('managePersonalAppointments', 'Manage your personal appointments and schedule')}
+          </p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
-            title="Total Appointments"
+            title={t('totalAppointments', 'Total Appointments')}
             value={stats.total}
             icon="📅"
             color="blue"
           />
           <StatCard
-            title="Scheduled"
+            title={t('scheduled', 'Scheduled')}
             value={stats.scheduled}
             icon="⏳"
             color="yellow"
           />
           <StatCard
-            title="Completed"
+            title={t('completed', 'Completed')}
             value={stats.completed}
             icon="✅"
             color="green"
           />
           <StatCard
-            title="Today"
+            title={t('today', 'Today')}
             value={stats.today}
             icon="📌"
             color="purple"
@@ -111,8 +118,12 @@ export default function AppointmentDashboard() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800">Upcoming Appointments</h2>
-                <p className="text-gray-600 text-sm mt-1">Your scheduled meetings</p>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {t('upcomingAppointments', 'Upcoming Appointments')}
+                </h2>
+                <p className="text-gray-600 text-sm mt-1">
+                  {t('yourScheduledMeetings', 'Your scheduled meetings')}
+                </p>
               </div>
               <div className="p-6">
                 {upcomingAppointments.length > 0 ? (
@@ -124,7 +135,9 @@ export default function AppointmentDashboard() {
                 ) : (
                   <div className="text-center py-8">
                     <div className="text-gray-400 text-6xl mb-4">📅</div>
-                    <p className="text-gray-500">No upcoming appointments</p>
+                    <p className="text-gray-500">
+                      {t('noUpcomingAppointments', 'No upcoming appointments')}
+                    </p>
                   </div>
                 )}
               </div>
@@ -136,14 +149,16 @@ export default function AppointmentDashboard() {
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
               <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-800">Quick Actions</h2>
+                <h2 className="text-xl font-semibold text-gray-800">
+                  {t('quickActions', 'Quick Actions')}
+                </h2>
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-                  <ActionButton icon="📋" label="Schedule New" />
-                  <ActionButton icon="🖨️" label="Print Schedule" />
-                  <ActionButton icon="📮" label="Post Updates" />
-                  <ActionButton icon="🚫" label="Set Unavailable" />
+                  <ActionButton icon="📋" label={t('scheduleNew', 'Schedule New')} />
+                  <ActionButton icon="🖨️" label={t('printSchedule', 'Print Schedule')} />
+                  <ActionButton icon="📮" label={t('postUpdates', 'Post Updates')} />
+                  <ActionButton icon="🚫" label={t('setUnavailable', 'Set Unavailable')} />
                 </div>
               </div>
             </div>       
@@ -153,7 +168,9 @@ export default function AppointmentDashboard() {
         {/* Recent Activity */}
         <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-800">Recent Activity</h2>
+            <h2 className="text-xl font-semibold text-gray-800">
+              {t('recentActivity', 'Recent Activity')}
+            </h2>
           </div>
           <div className="p-6">
             <div className="space-y-4">
@@ -167,6 +184,7 @@ export default function AppointmentDashboard() {
     </div>
   );
 }
+
 // Stat Card Component
 function StatCard({ title, value, icon, color }: { title: string; value: number; icon: string; color: string }) {
   const colorClasses = {
@@ -193,10 +211,18 @@ function StatCard({ title, value, icon, color }: { title: string; value: number;
 
 // Appointment Card Component
 function AppointmentCard({ appointment }: { appointment: Appointment }) {
+  const { t } = useTranslation(); // Add translation hook here if needed
+  
   const statusColors = {
     scheduled: 'bg-yellow-100 text-yellow-800',
     completed: 'bg-green-100 text-green-800',
     cancelled: 'bg-red-100 text-red-800'
+  };
+
+  const statusTranslations = {
+    scheduled: t('scheduled', 'Scheduled'),
+    completed: t('completed', 'Completed'),
+    cancelled: t('cancelled', 'Cancelled')
   };
 
   return (
@@ -219,7 +245,7 @@ function AppointmentCard({ appointment }: { appointment: Appointment }) {
       </div>
       <div className="flex items-center space-x-3">
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusColors[appointment.status]}`}>
-          {appointment.status.charAt(0).toUpperCase() + appointment.status.slice(1)}
+          {statusTranslations[appointment.status]}
         </span>
         <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
           <span className="text-gray-400 hover:text-gray-600">⋯</span>
@@ -241,6 +267,14 @@ function ActionButton({ icon, label }: { icon: string; label: string }) {
 
 // Activity Item Component
 function ActivityItem({ appointment }: { appointment: Appointment }) {
+  const { t } = useTranslation(); // Add translation hook here if needed
+  
+  const statusTranslations = {
+    scheduled: t('scheduled', 'Scheduled'),
+    completed: t('completed', 'Completed'),
+    cancelled: t('cancelled', 'Cancelled')
+  };
+
   return (
     <div className="flex items-center space-x-4">
       <div className={`w-2 h-2 rounded-full ${
@@ -259,7 +293,7 @@ function ActivityItem({ appointment }: { appointment: Appointment }) {
         appointment.status === 'completed' ? 'bg-green-100 text-green-800' : 
         appointment.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'
       }`}>
-        {appointment.status}
+        {statusTranslations[appointment.status]}
       </span>
     </div>
   );

@@ -20,8 +20,9 @@ const statusOptions = [
 const statusColors = {
   booked: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
-  cancelled: "bg-red-100 text-red-800",
-  'no-show': "bg-orange-100 text-orange-800",
+  rejected: "bg-red-100 text-red-800",
+  emergency_alert: "bg-red-500 text-white",
+  accepted: "bg-green-100 text-green-800",
 };
 
 export default function AppointmentsPage() {
@@ -35,7 +36,7 @@ export default function AppointmentsPage() {
 
   const updateClientStatusMutation = useUpdateClientStatus();
   const { data: appointmentsData, isLoading, error } = useAppointments(pageNum, pageSize, search, status);
-  
+
   const appointments = appointmentsData?.data || [];
   console.log(appointmentsData)
   const totalPages = appointmentsData?.meta?.totalPages || 1;
@@ -100,19 +101,6 @@ export default function AppointmentsPage() {
     return `${displayHour}:${minutes} ${period}`;
   };
 
-  const StatusDropdown = ({ appointment }: { appointment: Appointment }) => (
-    <select
-      value={appointment.status}
-      onChange={(e) => handleStatusUpdate(appointment._id, e.target.value)}
-      disabled={statusUpdateLoading === appointment._id}
-      className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
-        } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}
-    >
-      <option value="upcoming">Upcoming</option>
-      <option value="arrived">Arrived</option>
-      <option value="with_personnel">With Personnel</option>
-    </select>
-  );
 
   if (error) {
     return (
@@ -283,7 +271,8 @@ export default function AppointmentsPage() {
                     </td>
 
                     <td className="px-4 py-4">
-                      <StatusDropdown appointment={appointment} />
+                      <p className={`px-2 py-1 w-full items-center justify-center text-center rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+                        } ${statusUpdateLoading === appointment._id ? 'opacity-50' : ''}`}>{appointment.status}</p>
                     </td>
 
                     <td className="px-4 py-4 text-sm text-gray-600">

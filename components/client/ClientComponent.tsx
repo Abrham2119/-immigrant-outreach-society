@@ -537,9 +537,7 @@ export default function ClientsPage() {
                       </button>
                       <button
                         onClick={() => openPersonnelModal(client._id)}
-                        disabled={!client.consent}
-                        className={`${client.consent ? 'text-green-600 hover:text-green-800' : 'text-gray-400 cursor-not-allowed'} transition-colors`}
-                        title={client.consent ? "Book Appointment" : "Consent required to book appointment"}
+                        className={'text-green-600 hover:text-green-800' }
                       >
                         <Calendar size={16} />
                       </button>

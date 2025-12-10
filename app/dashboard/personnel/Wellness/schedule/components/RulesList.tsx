@@ -1,8 +1,8 @@
 "use client";
-import React from "react";
-import { useRuleManagement } from "@/domain/use-cases/rule";
+import { useTranslation } from '@/components/providers/translation.provider'; // Added import
 import { Rule } from "@/domain/entities/appointment";
-import Link from "next/link";
+import { useRuleManagement } from "@/domain/use-cases/rule";
+import React from "react";
 import { toast } from "react-toastify";
 
 interface RulesListProps {
@@ -11,6 +11,7 @@ interface RulesListProps {
 
 const RulesList: React.FC<RulesListProps> = ({ rules }) => {
     const { deleteRuleMutation } = useRuleManagement();
+    const { t } = useTranslation(); // Added hook
 
     const daysOfWeek = [
         { id: 0, label: "Sun", name: "Sunday" },
@@ -35,7 +36,7 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
     };
 
     const formatDate = (dateString: string | null) => {
-        if (!dateString) return "No end date";
+        if (!dateString) return t('noEndDate', "No end date");
         return new Date(dateString).toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
@@ -51,13 +52,13 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
     };
 
     const handleDeleteRule = (ruleId: string) => {
-        if (window.confirm("Are you sure you want to delete this availability rule?")) {
+        if (window.confirm(t('confirmDeleteRule', "Are you sure you want to delete this availability rule?"))) {
             deleteRuleMutation.mutate(ruleId, {
                 onSuccess: () => {
-                    toast.success("Rule deleted successfully!");
+                    toast.success(t('ruleDeletedSuccessfully', "Rule deleted successfully!"));
                 },
                 onError: (error: any) => {
-                    toast.error(error.response?.data?.message || "Error deleting rule");
+                    toast.error(error.response?.data?.message || t('errorDeletingRule', "Error deleting rule"));
                 }
             });
         }
@@ -66,10 +67,14 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
     if (rules.length === 0) {
         return (
             <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Your Availability Rules</h3>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    {t('yourAvailabilityRules', "Your Availability Rules")}
+                </h3>
                 <div className="text-center py-8 text-gray-500">
-                    <p>No availability rules set yet.</p>
-                    <p className="text-sm mt-1">Create your first rule using the form on the left.</p>
+                    <p>{t('noAvailabilityRulesSetYet', "No availability rules set yet.")}</p>
+                    <p className="text-sm mt-1">
+                        {t('createFirstRuleUsingForm', "Create your first rule using the form on the left.")}
+                    </p>
                 </div>
             </div>
         );
@@ -78,9 +83,11 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
     return (
         <div className="bg-white rounded-lg shadow p-6">
             <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Your Availability Rules</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                    {t('yourAvailabilityRules', "Your Availability Rules")}
+                </h3>
                 <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {rules.length} rule{rules.length !== 1 ? 's' : ''}
+                    {rules.length} {t('rule', "rule")}{rules.length !== 1 ? 's' : ''}
                 </span>
             </div>
 
@@ -97,16 +104,16 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
                                         {getDayLabels(rule.weekdays)}
                                     </span>
                                     <span className="text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">
-                                        {rule.weekdays.length} day{rule.weekdays.length !== 1 ? 's' : ''}
+                                        {rule.weekdays.length} {t('day', "day")}{rule.weekdays.length !== 1 ? 's' : ''}
                                     </span>
                                 </div>
                                 
                                 <div className="text-sm text-gray-600 mb-2">
-                                    <span className="font-medium">Time:</span> {formatTime(rule.startTime)} - {formatTime(rule.endTime)}
+                                    <span className="font-medium">{t('time', "Time")}:</span> {formatTime(rule.startTime)} - {formatTime(rule.endTime)}
                                 </div>
                                 
                                 <div className="text-sm text-gray-600">
-                                    <span className="font-medium">End Date:</span> {formatDate(rule.endDate)}
+                                    <span className="font-medium">{t('endDate', "End Date")}:</span> {formatDate(rule.endDate)}
                                 </div>
                             </div>
                             
@@ -127,7 +134,7 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
                                     onClick={() => handleDeleteRule(rule._id!)}
                                     disabled={deleteRuleMutation.isPending}
                                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
-                                    title="Delete rule"
+                                    title={t('deleteRule', "Delete rule")}
                                 >
                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -142,7 +149,7 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
             {/* Delete Error Message */}
             {deleteRuleMutation.isError && (
                 <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
-                    Error deleting rule: {deleteRuleMutation.error.message}
+                    {t('errorDeletingRuleMessage', "Error deleting rule")}: {deleteRuleMutation.error.message}
                 </div>
             )}
         </div>

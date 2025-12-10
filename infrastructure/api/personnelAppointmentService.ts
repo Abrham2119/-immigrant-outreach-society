@@ -23,6 +23,6 @@ export const updatePersonnelAppointmentStatusApi = async (
   appointmentId: string, 
   statusData: { status: string; remark?: string }
 ): Promise<{ message: string }> => {
-  const { data } = await api.patch(`/status/${appointmentId}`, statusData);
+  const { data } = await api.put(`/status/${appointmentId}/Personnel`, statusData);
   return data;
 };

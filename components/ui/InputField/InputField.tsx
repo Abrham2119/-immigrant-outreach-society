@@ -1,7 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 "use client";
 
-import { useTranslatedText } from "@/domain/translation/presentation/getTranslatedText";
 import { Eye, EyeOff, Image, Phone, Upload, X } from "lucide-react";
 import { forwardRef, useEffect, useRef, useState } from "react";
 import PhoneInputField from "./fields/PhoneInputField/PhoneInputField";
@@ -25,7 +24,6 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
       readOnly,
       ...rest
     } = props;
-    const translatedText = useTranslatedText();
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === "password";
     const inputType = isPassword && showPassword ? "text" : type;
@@ -131,8 +129,7 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(
                   className="flex items-center gap-1 text-[14px] font-[500] text-[#2463EB] mt-3 cursor-pointer w-fit"
                 >
                   <Upload size={18} />
-                  {translatedText?.inputFieldUploadLabel ?? "Upload your"}{" "}
-                  {label}
+Upload your                  {label}
                 </label>
               )}
             </>

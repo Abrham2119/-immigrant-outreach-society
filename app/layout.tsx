@@ -1,8 +1,9 @@
 import { Metadata } from "next";
 // import { Montserrat } from "next/font/google";
-import "../styles/globals.css";
-import QueryProvider from "@/components/providers/QueryProvider";
 import AuthProvider from "@/components/providers/AuthProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
+import { TranslationProvider } from "@/components/providers/translation.provider";
+import "../styles/globals.css";
 
 // const montserrat = Montserrat({
 //   subsets: ["latin"],
@@ -24,11 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html  lang="en" suppressHydrationWarning >
+    <html lang="en" suppressHydrationWarning >
       <body className={`antialiased bg-white`} cz-shortcut-listen="true" >
         <QueryProvider>
-          <AuthProvider>         
-            <div className="bg-white text-black">{children}</div>
+          <AuthProvider>
+            <TranslationProvider>
+              <div className="bg-white text-black">{children}</div>
+            </TranslationProvider>
           </AuthProvider>
         </QueryProvider>
       </body>

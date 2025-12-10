@@ -1,0 +1,55 @@
+import {
+  ClientAlertResponse,
+  MarkSeenResponse,
+  Notification,
+  NotificationResponse,
+  UnreadCountResponse
+} from '@/domain/entities/notification';
+import api from './axios';
+
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+export const getAllNotificationsUseCase = async (page: number = 1, limit: number = 20): Promise<Notification[]> => {
+  const { data } = await api.get<NotificationResponse>(`${BASE_URL}/notifications/all`, {
+    params: { page, limit }
+  });
+  return data.data;
+};
+
+export const getUnseenNotificationsUseCase = async (page: number = 1, limit: number = 20): Promise<Notification[]> => {
+  const { data } = await api.get<NotificationResponse>(`${BASE_URL}/notifications/unseen`, {
+    params: { page, limit }
+  });
+  return data.data;
+};
+
+export const getMissedNotificationsUseCase = async (page: number = 1, limit: number = 20): Promise<Notification[]> => {
+  const { data } = await api.get<NotificationResponse>(`${BASE_URL}/notifications/missed`, {
+    params: { page, limit }
+  });
+  return data.data;
+};
+
+export const getUnreadCountUseCase = async (): Promise<number> => {
+  const { data } = await api.get<UnreadCountResponse>(`${BASE_URL}/notifications/unread-count`);
+  return data.count;
+};
+
+export const markAllAsSeenUseCase = async (): Promise<void> => {
+  await api.put<MarkSeenResponse>(`${BASE_URL}/notifications/mark-seen`, {});
+};
+
+export const markNotificationAsSeenUseCase = async (notificationId: string): Promise<void> => {
+  await api.put<MarkSeenResponse>(`${BASE_URL}/notifications/mark-seen/${notificationId}`, {});
+};
+
+export const markAsDeliveredUseCase = async (): Promise<void> => {
+  await api.put<MarkSeenResponse>(`${BASE_URL}/notifications/delivered`, {});
+};
+
+export const updateEmergencyAlertStatusUseCase = async (clientId: string): Promise<ClientAlertResponse> => {
+  const { data } = await api.put<ClientAlertResponse>(`${BASE_URL}/clients/alert/status/${clientId}`, {
+    emergency_alert: true
+  });
+  return data;
+};

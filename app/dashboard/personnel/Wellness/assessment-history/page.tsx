@@ -51,8 +51,6 @@ export default function FormsPage() {
   const forms = formsResponse?.data || [];
   const meta = formsResponse?.meta;
   const totalPages = meta?.totalPages || 1;
-    console.log("this is ",forms)
-
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
