@@ -2,6 +2,7 @@
 import React from "react";
 import { AppointmentResponse } from '@/domain/entities/appointmentPersonnel';
 import { FileText, Image as ImageIcon, Download, ExternalLink } from 'lucide-react';
+import { EmergencyAlertStatus } from "../client/EmergencyAlertStatus";
 
 interface PersonnelAppointmentDetailsProps {
   appointment: AppointmentResponse;
@@ -72,58 +73,58 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
     return <FileText className="text-gray-500" size={20} />;
   };
 
-const getCleanedBaseUrl = () => {
-  let baseUrl = apiBaseUrl.trim();  
-  if (baseUrl.endsWith('/api')) {
-    baseUrl = baseUrl.slice(0, -4);
-  }  
-  return baseUrl.replace(/\/+$/, '');
-};
+  const getCleanedBaseUrl = () => {
+    let baseUrl = apiBaseUrl.trim();
+    if (baseUrl.endsWith('/api')) {
+      baseUrl = baseUrl.slice(0, -4);
+    }
+    return baseUrl.replace(/\/+$/, '');
+  };
 
-const handleDownload = async (filePath: string, fileName: string) => {
-  const cleanedBaseUrl = getCleanedBaseUrl();
-  const fileUrl = filePath.startsWith('http') ? filePath : `${cleanedBaseUrl}${filePath}`;
-  
-  const urlWithTimestamp = `${fileUrl}${fileUrl.includes('?') ? '&' : '?'}_=${Date.now()}`;
-  
-  try {
-    const response = await fetch(urlWithTimestamp);
-    const blob = await response.blob();
-    const blobUrl = window.URL.createObjectURL(blob);
-    
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = fileName;
-    link.style.display = 'none';
-    
-    document.body.appendChild(link);
-    link.click();
-    
-    setTimeout(() => {
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-    }, 100);
-    
-  } catch (error) {
-    const link = document.createElement('a');
-    link.href = urlWithTimestamp;
-    link.download = fileName;
-    link.target = '_blank';
-    link.style.display = 'none';
-    
-    document.body.appendChild(link);
-    link.click();
-    
-    setTimeout(() => {
-      document.body.removeChild(link);
-    }, 100);
-  }
-};
-const handleView = (filePath: string) => {
-  const cleanedBaseUrl = getCleanedBaseUrl();
-  const fileUrl = filePath.startsWith('http') ? filePath : `${cleanedBaseUrl}${filePath}`;
-  window.open(fileUrl, '_blank');
-};
+  const handleDownload = async (filePath: string, fileName: string) => {
+    const cleanedBaseUrl = getCleanedBaseUrl();
+    const fileUrl = filePath.startsWith('http') ? filePath : `${cleanedBaseUrl}${filePath}`;
+
+    const urlWithTimestamp = `${fileUrl}${fileUrl.includes('?') ? '&' : '?'}_=${Date.now()}`;
+
+    try {
+      const response = await fetch(urlWithTimestamp);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName;
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+
+      setTimeout(() => {
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(blobUrl);
+      }, 100);
+
+    } catch (error) {
+      const link = document.createElement('a');
+      link.href = urlWithTimestamp;
+      link.download = fileName;
+      link.target = '_blank';
+      link.style.display = 'none';
+
+      document.body.appendChild(link);
+      link.click();
+
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 100);
+    }
+  };
+  const handleView = (filePath: string) => {
+    const cleanedBaseUrl = getCleanedBaseUrl();
+    const fileUrl = filePath.startsWith('http') ? filePath : `${cleanedBaseUrl}${filePath}`;
+    window.open(fileUrl, '_blank');
+  };
 
 
 
@@ -133,41 +134,46 @@ const handleView = (filePath: string) => {
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 top-0 bg-white py-2 z-10">
           Appointment Details
         </h2>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Client Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Client Information</h3>
-            
+
             <div>
               <p className="text-sm text-gray-600">Full Name</p>
               <p className="text-gray-800 font-medium">
                 {appointment.client.firstName} {appointment.client.lastName}
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-600">Contact Information</p>
               <p className="text-gray-800 font-medium break-all">{appointment.client.email}</p>
               <p className="text-gray-600 text-sm">+{appointment.client.mobile}</p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-600">Demographics</p>
               <p className="text-gray-800 font-medium capitalize">{appointment.client.gender}</p>
               <p className="text-gray-600 text-sm">{appointment.client.nationality} • {appointment.client.immigrationStatus}</p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-600">Language</p>
               <p className="text-gray-800 font-medium">{appointment.client.language}</p>
             </div>
+            <div>
 
+              <EmergencyAlertStatus
+                status={appointment.client.emergency_alert?.status === true}
+                reason={appointment.client.emergency_alert?.reason}
+              />
+            </div>
             <div>
               <p className="text-sm text-gray-600">Client Status</p>
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                statusColors[appointment.client.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
-              }`}>
+              <span className={`px-2 py-1 rounded-full text-xs ${statusColors[appointment.client.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+                }`}>
                 {appointment.client.status}
               </span>
             </div>
@@ -176,7 +182,7 @@ const handleView = (filePath: string) => {
           {/* Appointment Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Appointment Information</h3>
-            
+
             <div>
               <p className="text-sm text-gray-600">Date & Time</p>
               <p className="text-gray-800 font-medium">{formatDate(appointment.date)}</p>
@@ -184,16 +190,15 @@ const handleView = (filePath: string) => {
                 {formatTime(appointment.startTime)} - {formatTime(appointment.endTime)}
               </p>
             </div>
-            
+
             <div>
               <p className="text-sm text-gray-600">Appointment Status</p>
-              <span className={`px-2 py-1 rounded-full text-xs ${
-                statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
-              }`}>
+              <span className={`px-2 py-1 rounded-full text-xs ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
+                }`}>
                 {appointment.status}
               </span>
             </div>
-            
+
             {appointment.remark && (
               <div>
                 <p className="text-sm text-gray-600">Remarks</p>
@@ -223,7 +228,7 @@ const handleView = (filePath: string) => {
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
               Uploaded Documents ({appointment.client.files.length})
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {appointment.client.files.map((file, index) => (
                 <div
@@ -278,21 +283,21 @@ const handleView = (filePath: string) => {
         {/* Additional Information */}
         <div className="space-y-4 pb-6">
           <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Additional Information</h3>
-          
+
           {appointment.client.message && (
             <div>
               <p className="text-sm text-gray-600">Client Message</p>
               <p className="text-gray-800 font-medium italic break-words">"{appointment.client.message}"</p>
             </div>
           )}
-          
+
           {appointment.client.statusReason && (
             <div>
               <p className="text-sm text-gray-600">Status Reason</p>
               <p className="text-gray-800 font-medium italic break-words">"{appointment.client.statusReason}"</p>
             </div>
           )}
-          
+
           <div>
             <p className="text-sm text-gray-600">Appointment Created</p>
             <p className="text-gray-800 font-medium">
@@ -300,7 +305,7 @@ const handleView = (filePath: string) => {
               {new Date(appointment.createdAt).toLocaleTimeString()}
             </p>
           </div>
-          
+
           {appointment.updatedAt && appointment.updatedAt !== appointment.createdAt && (
             <div>
               <p className="text-sm text-gray-600">Last Updated</p>

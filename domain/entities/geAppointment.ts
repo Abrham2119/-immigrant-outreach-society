@@ -4,6 +4,10 @@ export interface AppointmentClient {
   lastName: string;
   gender: string;
   email: string;
+  emergency_alert?: {
+    status: boolean;
+    reason?: string;
+  };
   mobile: string;
   nationality: string;
   immigrationStatus: string;

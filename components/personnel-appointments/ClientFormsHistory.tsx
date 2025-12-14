@@ -8,6 +8,7 @@ import { Download, History } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { ContentProtectionWrapper } from '../ContentProtectionWrapper';
+import { EmergencyAlertButton } from '../ui/Button/EmergencyAlertButton';
 
 interface ClientFormsHistoryProps {
   clientId: string;
@@ -86,7 +87,7 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
   };
 
   const getPersonnelName = (form: Form) => {
-    return `${form.personnel.firstName} ${form.personnel.lastName}`;
+    return `${form.personnel?.firstName} ${form.personnel?.lastName}`;
   };
 
   const serviceColors = {
@@ -116,134 +117,138 @@ export const ClientFormsHistory: React.FC<ClientFormsHistoryProps> = ({
         </div>
       </button>
 
-      <ModalComponent isOpen={isModalOpen && !selectedFormId} onClose={closeModal} >
+     <ModalComponent isOpen={isModalOpen && !selectedFormId} onClose={closeModal} >
+  <div className="p-6 max-h-[80vh] overflow-y-auto">
+    {!isLoading && (
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">
+          Form History for {clientName}
+        </h2>
+        <div className="flex items-center gap-4">
+          <EmergencyAlertButton
+            clientId={clientId}
+          />
+          <div className="relative">
+            {userRole === "Personnel Admin" && (
+              <>
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  <Download size={16} />
+                  Export
+                </button>
 
-        <div className="p-6 max-h-[80vh] overflow-y-auto">
-          {!isLoading && (
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">
-                Form History for {clientName}
-              </h2>
-              <div className="relative">
-                {userRole === "Personnel Admin" && (
-                  <>
+                {showExportMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                     <button
-                      onClick={() => setShowExportMenu(!showExportMenu)}
-                      className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                      onClick={() => exportForms('pdf')}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-700 flex items-center gap-2"
                     >
-                      <Download size={16} />
-                      Export
+                      <span className="text-red-500 font-medium">PDF</span>
+                      Export as PDF
                     </button>
-
-                    {showExportMenu && (
-                      <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                        <button
-                          onClick={() => exportForms('pdf')}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 text-gray-700 flex items-center gap-2"
-                        >
-                          <span className="text-red-500 font-medium">PDF</span>
-                          Export as PDF
-                        </button>
-                        <button
-                          onClick={() => exportForms('excel')}
-                          className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 flex items-center gap-2"
-                        >
-                          <span className="text-green-500 font-medium">Excel</span>
-                          Export as Excel
-                        </button>
-                      </div>
-                    )}
-                  </>
+                    <button
+                      onClick={() => exportForms('excel')}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 text-gray-700 flex items-center gap-2"
+                    >
+                      <span className="text-green-500 font-medium">Excel</span>
+                      Export as Excel
+                    </button>
+                  </div>
                 )}
-              </div>
-            </div>
-          )}
-
-          {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading form history...</p>
-            </div>
-          ) : error ? (
-            <div className="text-center py-8 text-red-600">
-              Error loading form history: {(error as Error).message}
-            </div>
-          ) : forms.length === 0 ? (
-            <div className="text-center py-8 text-gray-600">
-              No forms found for this client.
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
-                        Form Title
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
-                        Service
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
-                        Personnel
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
-                        Created Date
-                      </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {forms.map((form, index) => (
-                      <tr
-                        key={form._id}
-                        className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                          } border-b border-gray-200 last:border-b-0 hover:bg-gray-100`}
-                      >
-                        <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
-                          {formatFormTitle(form.title)}
-                        </td>
-                        <td className="py-3 px-4 text-sm whitespace-nowrap">
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${serviceColors[form.service as keyof typeof serviceColors] ||
-                              "bg-gray-100 text-gray-800"
-                              }`}
-                          >
-                            {form.service}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
-                          {getPersonnelName(form)}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
-                          {formatDate(form.createdAt)}
-                        </td>
-                        <td className="py-3 px-4 text-sm whitespace-nowrap">
-                          <button
-                            onClick={() => openFormDetails(form._id)}
-                            className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
-                            title="View Form Details"
-                          >
-                            View Details
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  <strong>Total Forms:</strong> {totalCount} forms found
-                </p>
-              </div>
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </div>
-      </ModalComponent>
+      </div>
+    )}
+
+    {isLoading ? (
+      <div className="text-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Loading form history...</p>
+      </div>
+    ) : error ? (
+      <div className="text-center py-8 text-red-600">
+        Error loading form history: {(error as Error).message}
+      </div>
+    ) : forms.length === 0 ? (
+      <div className="text-center py-8 text-gray-600">
+        No forms found for this client.
+      </div>
+    ) : (
+      <div className="space-y-6">
+        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200">
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Form Title
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Service
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Personnel
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Created Date
+                </th>
+                <th className="text-left py-3 px-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {forms.map((form, index) => (
+                <tr
+                  key={form._id}
+                  className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"
+                    } border-b border-gray-200 last:border-b-0 hover:bg-gray-100`}
+                >
+                  <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
+                    {formatFormTitle(form.title)}
+                  </td>
+                  <td className="py-3 px-4 text-sm whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${serviceColors[form.service as keyof typeof serviceColors] ||
+                        "bg-gray-100 text-gray-800"
+                        }`}
+                    >
+                      {form.service}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
+                    {getPersonnelName(form)}
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-900 whitespace-nowrap">
+                    {formatDate(form.createdAt)}
+                  </td>
+                  <td className="py-3 px-4 text-sm whitespace-nowrap">
+                    <button
+                      onClick={() => openFormDetails(form._id)}
+                      className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
+                      title="View Form Details"
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Total Forms:</strong> {totalCount} forms found
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+</ModalComponent>
 
       <ModalComponent isOpen={!!selectedFormId} onClose={closeFormDetails}>
         {isFormLoading ? (

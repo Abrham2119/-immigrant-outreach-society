@@ -3,6 +3,7 @@ import React from "react";
 import { useQuery } from '@tanstack/react-query';
 import { getClientByIdUseCase } from '@/infrastructure/api/clientService';
 import { Client } from '@/domain/entities/client';
+import { EmergencyAlertStatus } from "./EmergencyAlertStatus";
 
 interface ClientDetailsProps {
   id: string;
@@ -96,10 +97,8 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ id }) => {
   // Function to map service values to labels
   const getServiceLabel = (serviceValue: string) => {
     const service = SERVICES.find(s => s.value === serviceValue);
-    return service ? service.label : serviceValue; // Fallback to original value if not found
+    return service ? service.label : serviceValue;
   };
-
-  console.log(client, "this is client");
 
   return (
     <div className="w-full max-w-8xl max-h-[86vh] overflow-hidden flex flex-col">
@@ -145,6 +144,12 @@ export const ClientDetails: React.FC<ClientDetailsProps> = ({ id }) => {
             <div>
               <p className="text-sm text-gray-600">Language</p>
               <p className="text-gray-800 font-medium">{client.language}</p>
+            </div>
+            <div>              
+              <EmergencyAlertStatus
+                status={client.emergency_alert?.status === true}
+                reason={client.emergency_alert?.reason}
+              />
             </div>
           </div>
 

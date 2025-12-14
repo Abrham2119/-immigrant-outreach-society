@@ -203,6 +203,11 @@ export default function FormsPage() {
                         <User size={16} className="text-gray-500" />
                         {getClientName(form)}
                       </div>
+                      {form.client?.emergency_alert?.status === true && (
+                            <span className="text-red-600 text-xs font-semibold mt-0.5">
+                              Emergency Alert
+                            </span>
+                          )}
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       {getPersonnelName(form)}

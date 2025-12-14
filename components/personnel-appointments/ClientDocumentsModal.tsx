@@ -2,7 +2,7 @@
 
 import { File } from 'lucide-react';
 import { ClientDocumentUpload } from './ClientDocumentUpload';
-
+import { EmergencyAlertButton } from '../ui/Button/EmergencyAlertButton';
 
 interface ClientDocumentsModalProps {
   clientId: string;
@@ -17,8 +17,8 @@ export const ClientDocumentsModal: React.FC<ClientDocumentsModalProps> = ({
   isOpen,
   onClose,
 }) => {
-    return (
-    <div className="fixed inset-0 bg-black/50   flex items-center justify-center z-50 p-4">
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
@@ -27,19 +27,24 @@ export const ClientDocumentsModal: React.FC<ClientDocumentsModalProps> = ({
               Documents for {clientName}
             </h2>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl"
-          >
-            ×
-          </button>
+          <div className="flex items-center pr-3 gap-2">
+            <EmergencyAlertButton
+              clientId={clientId}
+            />
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 text-2xl"
+            >
+              ×
+            </button>
+          </div>
         </div>
         {/* Content */}
         <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           <ClientDocumentUpload
-              clientId={clientId}
-              clientName={clientName} 
-                onClose={() => onClose()}   />
+            clientId={clientId}
+            clientName={clientName}
+            onClose={() => onClose()} />
         </div>
 
         {/* Footer */}

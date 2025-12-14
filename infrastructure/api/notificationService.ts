@@ -9,6 +9,11 @@ import api from './axios';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
+interface UpdateEmergencyAlertPayload {
+  clientId?: string;
+  emergency_alert: boolean;
+  reason: string;
+}
 export const getAllNotificationsUseCase = async (page: number = 1, limit: number = 20): Promise<Notification[]> => {
   const { data } = await api.get<NotificationResponse>(`${BASE_URL}/notifications/all`, {
     params: { page, limit }
@@ -47,9 +52,23 @@ export const markAsDeliveredUseCase = async (): Promise<void> => {
   await api.put<MarkSeenResponse>(`${BASE_URL}/notifications/delivered`, {});
 };
 
-export const updateEmergencyAlertStatusUseCase = async (clientId: string): Promise<ClientAlertResponse> => {
-  const { data } = await api.put<ClientAlertResponse>(`${BASE_URL}/clients/alert/status/${clientId}`, {
-    emergency_alert: true
-  });
+
+
+export const updateEmergencyAlertStatusUseCase = async (
+  payload: UpdateEmergencyAlertPayload
+): Promise<ClientAlertResponse> => {
+  const { clientId, emergency_alert, reason } = payload;
+  
+  if (!reason || reason.trim().length < 3) {
+    throw new Error('Reason is required and must be at least 3 characters');
+  }
+
+  const { data } = await api.put<ClientAlertResponse>(
+    `${BASE_URL}/clients/alert/status/${clientId}`,
+    {
+      emergency_alert,
+      reason: reason.trim()
+    }
+  );
   return data;
 };

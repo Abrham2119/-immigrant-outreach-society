@@ -1,23 +1,23 @@
 "use client";
 
 import { usePersonnelAppointmentManagement } from '@/application/hooks/usePersonnelAppointments';
+import { Pagination } from '@/components/client/Pagination';
 import { assessmentForms } from '@/domain/constants/assessmentForms';
 import { AssessmentFormType } from '@/domain/constants/AssessmentFormType';
 import { AppointmentResponse, AppointmentStatus } from '@/domain/entities/appointmentPersonnel';
-import { Eye, FileText, User, Paperclip } from 'lucide-react';
+import { Eye, FileText, Paperclip, User, Filter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { EmergencyAlertButton } from '../ui/Button/EmergencyAlertButton';
 import ModalComponent from '../ui/modal/Modal';
-import { PersonnelAppointmentDetails } from './PersonnelAppointmentDetails';
+import { ClientDocumentsModal } from './ClientDocumentsModal';
 import { ClientFormsHistory } from './ClientFormsHistory';
-import { Pagination } from '@/components/client/Pagination';
-import { ClientDocumentsModal } from './ClientDocumentsModal'; // Make sure this is imported
+import { PersonnelAppointmentDetails } from './PersonnelAppointmentDetails';
 
 const statusColors = {
   booked: "bg-blue-100 text-blue-800",
   completed: "bg-green-100 text-green-800",
   rejected: "bg-red-100 text-red-800",
-  emergency_alert: "bg-red-500 text-white",
   accepted: "bg-green-100 text-green-800",
 };
 
@@ -48,14 +48,16 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   const [rejectionReason, setRejectionReason] = useState('');
   const [rejectionError, setRejectionError] = useState('');
   const [remark, setRemark] = useState<string>('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<AppointmentStatus | 'all'>('all');
   const router = useRouter();
 
   const { personnelId, usePersonnelAppointments, useUpdateAppointmentStatus } = usePersonnelAppointmentManagement();
 
   // ALWAYS call hooks at the top level - never conditionally
   const { data: appointmentsData, isLoading, error } = usePersonnelAppointments({
-    personnelId: personnelId || '', 
-    status: 'booked',
+    personnelId: personnelId || '',
+    status: externalStatus || '',
     page: pageNum,
     limit: pageSize,
     search: search
@@ -70,6 +72,12 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   const totalPages = appointmentsData?.meta?.totalPages || 1;
   const totalCount = appointmentsData?.meta?.total || 0;
   const currentCount = appointmentsData?.meta?.count || 0;
+
+  // Filter appointments based on selected status filter
+  const filteredAppointments = appointments.filter(appointment => {
+    if (selectedFilter === 'all') return true;
+    return appointment.status === selectedFilter;
+  });
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -176,29 +184,32 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   };
 
   const StatusDropdown = ({ appointment }: { appointment: AppointmentResponse }) => {
+    console.log("appointment", appointment)
     const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newStatus = e.target.value;
 
       if (newStatus === 'rejected') {
-        handleRejectionClick(appointment.client._id);
+        handleRejectionClick(appointment._id);
       } else {
-        handleStatusUpdate(appointment.client._id, newStatus);
+        handleStatusUpdate(appointment._id, newStatus);
       }
     };
 
     return (
       <select
-        value={appointment.client.status}
+        value={appointment.status}
         onChange={handleStatusChange}
-        disabled={statusUpdateLoading === appointment.client._id}
-        className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.client.status as keyof typeof statusColors] ||
+        disabled={statusUpdateLoading === appointment._id}
+        className={`px-2 py-1 rounded-full text-xs font-medium border-none outline-none cursor-pointer ${statusColors[appointment.status as keyof typeof statusColors] ||
           "bg-gray-100 text-gray-800"
-          } ${statusUpdateLoading === appointment.client._id ? "opacity-50" : ""}`}
+          } ${statusUpdateLoading === appointment._id ? "opacity-50" : ""}`}
       >
         <option value="booked">Booked</option>
         <option value="completed">Completed</option>
         <option value="rejected">Rejected</option>
-        <option value="emergency_alert">Emergency Alert</option>
+        <option value="accepted">Accepted</option>
+
+
       </select>
     );
   };
@@ -247,6 +258,105 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               className="outline-none placeholder:text-[16px] px-2 w-full"
             />
           </div>
+          <div className="relative">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Filter size={18} />
+              <span>Filter</span>
+              {selectedFilter !== 'all' && (
+                <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[selectedFilter as keyof typeof statusColors]}`}>
+                  {selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)}
+                </span>
+              )}
+            </button>
+
+            {showFilters && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-2">
+                    Filter
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedFilter('all');
+                      setShowFilters(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded mb-1 ${selectedFilter === 'all'
+                        ? 'bg-gray-100 text-gray-800'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                  >
+                    <span>All Appointments</span>
+                    {selectedFilter === 'all' && (
+                      <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedFilter('booked');
+                      setShowFilters(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded mb-1 ${selectedFilter === 'booked'
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                  >
+                    <span>Booked</span>
+                    {selectedFilter === 'booked' && (
+                      <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedFilter('completed');
+                      setShowFilters(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded mb-1 ${selectedFilter === 'completed'
+                        ? 'bg-green-50 text-green-600'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                  >
+                    <span>Completed</span>
+                    {selectedFilter === 'completed' && (
+                      <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedFilter('rejected');
+                      setShowFilters(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded mb-1 ${selectedFilter === 'rejected'
+                        ? 'bg-red-50 text-red-600'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                  >
+                    <span>Rejected</span>
+                    {selectedFilter === 'rejected' && (
+                      <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedFilter('accepted');
+                      setShowFilters(false);
+                    }}
+                    className={`flex items-center justify-between w-full px-3 py-2 text-sm rounded ${selectedFilter === 'accepted'
+                        ? 'bg-green-50 text-green-600'
+                        : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                  >
+                    <span>Accepted</span>
+                    {selectedFilter === 'accepted' && (
+                      <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto border border-[#71717180]/50 min-h-[60vh] text-[#555555]">
@@ -282,14 +392,16 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                     </div>
                   </td>
                 </tr>
-              ) : appointments.length === 0 ? (
+              ) : filteredAppointments.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center py-4">
-                    No appointments found.
+                    {appointments.length === 0
+                      ? "No appointments found."
+                      : `No ${selectedFilter} appointments found.`}
                   </td>
                 </tr>
               ) : (
-                appointments.map((appointment, index) => (
+                filteredAppointments.map((appointment, index) => (
                   <tr
                     key={appointment._id}
                     className={`${index % 2 === 0 ? "bg-white" : "bg-[#F7F7F7]"}`}
@@ -301,9 +413,16 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                             {appointment.client.firstName.charAt(0)}{appointment.client.lastName.charAt(0)}
                           </span>
                         </div>
-                        <span>
-                          {appointment.client.firstName} {appointment.client.lastName}
-                        </span>
+                        <div className="flex flex-col items-start">
+                          <span>
+                            {appointment.client.firstName} {appointment.client.lastName}
+                          </span>
+                          {appointment.client.emergency_alert?.status === true && (
+                            <span className="text-red-600 text-xs font-semibold mt-0.5">
+                              Emergency
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
@@ -423,27 +542,39 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
           </div>
 
           {selectedAppointmentForAssessment && (
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-600">
-                <strong>Selected Client:</strong> {selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                <strong>Client ID:</strong> {selectedAppointmentForAssessment.client._id}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                <strong>Personnel ID:</strong> {personnelId}
-              </p>
-              <p className="text-sm text-gray-600 mt-1">
-                <strong>Appointment ID:</strong> {selectedAppointmentForAssessment._id}
-              </p>
-              <p className="text-xs text-gray-500 mt-2">
-                Appointment: {formatDisplayDate(selectedAppointmentForAssessment.date)} at {formatTime(selectedAppointmentForAssessment.startTime)}
-              </p>
+            <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <p className="text-sm text-gray-700">
+                    <strong>Selected Client:</strong> {selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}
+                  </p>
+                </div>
+                {/* {selectedAppointmentForAssessment.client.emergency_alert?.status ===false && <div>
+                  
+                </div>} */}
+                <EmergencyAlertButton
+                  clientId={selectedAppointmentForAssessment?.client?._id || ''}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-1">
+                <p className="text-sm text-gray-600">
+                  <strong>Client ID:</strong> <span className="font-mono text-xs">{selectedAppointmentForAssessment.client._id}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Personnel ID:</strong> <span className="font-mono text-xs">{personnelId}</span>
+                </p>
+                <p className="text-sm text-gray-600">
+                  <strong>Appointment ID:</strong> <span className="font-mono text-xs">{selectedAppointmentForAssessment._id}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-300">
+                  <strong>Appointment:</strong> {formatDisplayDate(selectedAppointmentForAssessment.date)} at {formatTime(selectedAppointmentForAssessment.startTime)}
+                </p>
+              </div>
             </div>
           )}
         </div>
       </ModalComponent>
-
       <ModalComponent isOpen={isRejectionModalOpen} onClose={() => setIsRejectionModalOpen(false)}>
         <div className="w-full max-w-md p-6">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Reject Appointment</h2>
@@ -483,8 +614,8 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               onClick={confirmRejection}
               disabled={!rejectionReason.trim()}
               className={`px-4 py-2 text-white rounded-md transition-colors ${rejectionReason.trim()
-                  ? 'bg-red-600 hover:bg-red-700'
-                  : 'bg-red-400 cursor-not-allowed'
+                ? 'bg-red-600 hover:bg-red-700'
+                : 'bg-red-400 cursor-not-allowed'
                 }`}
             >
               Confirm Rejection

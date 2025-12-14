@@ -2,7 +2,7 @@
 import React from 'react';
 import { LegalDocumentProps } from './LegalDocumentProps.types';
 import Link from 'next/link';
-import { useTranslatedText } from '@/domain/translation/presentation/getTranslatedText';
+import { useTranslatedText } from '@/application/hooks/use-translated-text';
 
 const LegalDocument: React.FC<LegalDocumentProps> = ({
     title,
@@ -31,7 +31,7 @@ const LegalDocument: React.FC<LegalDocumentProps> = ({
 
                 >
 
-                    {translatedText?.legalDocumentDoneButton ?? "Done"}
+                    {"Done"}
                 </Link>
 
             </div>

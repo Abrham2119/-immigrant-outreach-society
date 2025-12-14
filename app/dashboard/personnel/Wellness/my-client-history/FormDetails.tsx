@@ -1,4 +1,5 @@
 "use client";
+import { EmergencyAlertStatus } from '@/components/client/EmergencyAlertStatus';
 import { ContentProtectionWrapper } from '@/components/ContentProtectionWrapper';
 import { FormDetailsMapper } from '@/components/forms/form-details/FormDetailsMapper';
 import { Client, Personnel } from '@/domain/entities/formId';
@@ -125,6 +126,13 @@ export const FormDetails: React.FC<FormDetailsProps> = ({ id }) => {
             <label className="text-sm font-medium text-gray-600">Nationality</label>
             <p className="mt-1 text-sm text-gray-900">{safeClient.nationality || 'N/A'}</p>
           </div>
+           <div>
+                                  
+                                  <EmergencyAlertStatus
+                                    status={safeClient.emergency_alert?.status === true}
+                                    reason={safeClient.emergency_alert?.reason}
+                                  />
+                                </div>
         </div>
       </div>
 

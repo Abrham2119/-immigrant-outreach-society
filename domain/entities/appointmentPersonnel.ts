@@ -1,11 +1,10 @@
 export type AppointmentStatus =
   | "all"
   | "booked"
-  | "arrived"
-  | "with_personnel"
+  | "accepted"
   | "completed"
-  | "cancelled"
-  | "no-show";
+  | "rejected"
+  |""
 
 interface Meta {
   total: number;
@@ -33,6 +32,9 @@ export interface Client {
   firstName: string;
   lastName: string;
   gender: string;
+   emergency_alert: {
+    reason: string;
+    status: boolean}
   email: string;
   mobile: string;
   nationality: string;

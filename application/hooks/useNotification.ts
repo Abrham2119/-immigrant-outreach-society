@@ -68,6 +68,7 @@ export const useMarkAsDelivered = () => {
   });
 };
 
+
 export const useUpdateEmergencyAlertStatus = () => {
   const queryClient = useQueryClient();
   

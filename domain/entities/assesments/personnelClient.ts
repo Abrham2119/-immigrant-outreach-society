@@ -18,11 +18,15 @@ export interface FormData {
 
 export interface Client {
   _id: string;
-  firstName: string;
-  lastName: string;
+  firstName?: string;
+  lastName?: string;
   gender: string;
   email: string;
   mobile: string;
+  emergency_alert?: {
+    status: boolean;
+    reason?: string;
+  };
   nationality: string;
   immigrationStatus: string;
   language: string;

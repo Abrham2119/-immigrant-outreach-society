@@ -200,8 +200,14 @@ export default function PersonnelClientsPage() {
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       <div className="flex items-center justify-center gap-2">
-                        <User size={16} className="text-gray-500" />
-                        {getClientName(form)}
+                        <div className="flex flex-col items-start">
+                          <div>{getClientName(form)}</div>
+                          {form.client?.emergency_alert === true && (
+                            <span className="text-red-600 text-xs font-semibold mt-0.5">
+                              Emergency Alert
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">

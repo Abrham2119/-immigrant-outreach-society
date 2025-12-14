@@ -30,7 +30,7 @@ interface NotificationModalProps {
   };
   updateEmergencyAlertStatusMutation: {
     isPending: boolean;
-    mutate: (clientId: string) => void;
+    mutate: (payload: { clientId: string; emergency_alert: boolean; reason: string }) => void;
   };
   refetchUnreadCount: () => void;
   refetchUnseen: () => void;
@@ -133,8 +133,8 @@ export const NotificationModal = ({
           <button
             onClick={() => setActiveTab('unseen')}
             className={`flex-1 py-2 text-center font-medium ${activeTab === 'unseen'
-                ? 'text-blue-600 border-b-2 border-blue-600'
-                : 'text-gray-500 hover:text-gray-700'}`}
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700'}`}
           >
             Unseen ({unseenNotifications.length})
           </button>
@@ -142,8 +142,8 @@ export const NotificationModal = ({
             <button
               onClick={() => setActiveTab('all')}
               className={`flex-1 py-2 text-center font-medium ${activeTab === 'all'
-                  ? 'text-blue-600 border-b-2 border-blue-600'
-                  : 'text-gray-500 hover:text-gray-700'}`}
+                ? 'text-blue-600 border-b-2 border-blue-600'
+                : 'text-gray-500 hover:text-gray-700'}`}
             >
               All ({allNotifications.length})
             </button>
@@ -151,7 +151,7 @@ export const NotificationModal = ({
         </div>
       </div>
 
-      <div className="overflow-y-auto max-h-[400px]">
+      <div className="overflow-y-auto pb-8 max-h-[400px]">
         {currentNotifications.length > 0 ? (
           <div className="divide-y divide-gray-100">
             {currentNotifications.map((notification) => (
@@ -183,39 +183,7 @@ export const NotificationModal = ({
           </div>
         )}
 
-        {realtimeAlerts.length > 0 && (
-          <div className="border-t border-gray-200">
-            <div className="p-4 bg-gray-50">
-              <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-                Real-time Alerts ({realtimeAlerts.length})
-              </h4>
-              <div className="space-y-2">
-                {realtimeAlerts.slice(0, 3).map((alert) => (
-                  <div
-                    key={alert._id}
-                    className="p-3 bg-red-50 rounded-lg border border-red-200"
-                  >
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle size={16} className="text-red-600" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-800">{alert.message}</p>
-                        {alert.client && (
-                          <p className="text-xs text-gray-600 mt-1">
-                            Client: {alert.client.firstName} {alert.client.lastName}
-                          </p>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {formatTime(alert.createdAt, t)}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+
       </div>
 
       <div className="p-3 border-t border-gray-200 bg-gray-50">

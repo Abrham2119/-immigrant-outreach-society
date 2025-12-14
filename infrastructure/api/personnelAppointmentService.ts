@@ -13,16 +13,15 @@ export const getPersonnelAppointmentsApi = async (
     page: page.toString(),
     limit: limit.toString(),
     ...(search && { search })
-  });
-  
+  });  
   const { data } = await api.get<AppointmentsListResponse>(`/appointments/personnel/${personnelId}?${params}`);  
   return data;
 };
 
 export const updatePersonnelAppointmentStatusApi = async (
   appointmentId: string, 
-  statusData: { status: string; remark?: string }
+  statusData: { status: string; reason?: string } 
 ): Promise<{ message: string }> => {
-  const { data } = await api.put(`/status/${appointmentId}/Personnel`, statusData);
+  const { data } = await api.put(`/appointments/${appointmentId}`, statusData);
   return data;
 };

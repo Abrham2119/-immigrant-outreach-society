@@ -1,4 +1,5 @@
 "use client";
+import { EmergencyAlertStatus } from "@/components/client/EmergencyAlertStatus";
 import { useAppointment } from "@/domain/use-cases/getAppointment";
 import React from "react";
 
@@ -102,6 +103,13 @@ export const AppointmentDetails: React.FC<AppointmentDetailsProps> = ({ id }) =>
             <p className="text-sm text-gray-600">Language</p>
             <p className="text-gray-800 font-medium">{appointment.client.language}</p>
           </div>
+            <div>
+                        
+                        <EmergencyAlertStatus
+                          status={appointment.client.emergency_alert?.status === true}
+                          reason={appointment.client.emergency_alert?.reason}
+                        />
+                      </div>
         </div>
 
         <div className="space-y-4">

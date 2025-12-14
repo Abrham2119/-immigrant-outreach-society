@@ -494,7 +494,14 @@ export default function ClientsPage() {
                       {client._id.substring(0, 8)}...
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
-                      {`${client.firstName} ${client.lastName}`}
+                      <div className="flex flex-col items-center">
+                        <span>{`${client.firstName} ${client.lastName}`}</span>
+                        {client.emergency_alert?.status === true && (
+                          <span className="text-red-600 text-xs font-semibold mt-0.5">
+                            Emergency
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-4 text-[14px] whitespace-nowrap text-center font-medium">
                       +{client.mobile}
@@ -537,7 +544,7 @@ export default function ClientsPage() {
                       </button>
                       <button
                         onClick={() => openPersonnelModal(client._id)}
-                        className={'text-green-600 hover:text-green-800' }
+                        className={'text-green-600 hover:text-green-800'}
                       >
                         <Calendar size={16} />
                       </button>

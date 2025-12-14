@@ -19,6 +19,10 @@ export interface Client {
   email: string;
   mobile: string;
   nationality: string;
+  emergency_alert?: {
+    status: boolean;
+    reason?: string;
+  };
   immigrationStatus: string;
   language: string;
   address: string;

@@ -1,9 +1,9 @@
 "use client";
-import { useState } from "react";
-import { ChevronDown, Funnel } from "lucide-react";
+import { useTranslatedText } from "@/application/hooks/use-translated-text";
 import classNames from "classnames";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 import { CustomDropdownProps, Status } from "./types";
-import { useTranslatedText } from "@/domain/translation/presentation/getTranslatedText";
 
 export default function CustomDropdown({
   selected,
