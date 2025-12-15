@@ -1,8 +1,11 @@
 "use client";
 import React from "react";
+import { useTranslation } from '@/components/providers/translation.provider';
 import { AppointmentResponse } from '@/domain/entities/appointmentPersonnel';
-import { FileText, Image as ImageIcon, Download, ExternalLink } from 'lucide-react';
+import { FileText, Image as ImageIcon, Download, ExternalLink, Trash2 } from 'lucide-react';
 import { EmergencyAlertStatus } from "../client/EmergencyAlertStatus";
+import { useDeleteClientFile } from "@/application/hooks/useClientDocuments";
+import { useSession } from "next-auth/react";
 
 interface PersonnelAppointmentDetailsProps {
   appointment: AppointmentResponse;
@@ -18,13 +21,17 @@ const statusColors = {
 };
 
 export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsProps> = ({ appointment }) => {
+  const { t } = useTranslation();
+  const deleteFileMutation = useDeleteClientFile();
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || '';
+  const { data: session } = useSession();
+  const isPersonnelAdmin = session?.user?.role === "Personnel Admin";
 
   if (!appointment) {
     return (
       <div className="h-full flex items-center justify-center p-6">
         <div className="text-gray-600 text-center">
-          Appointment not found.
+          {t('appointmentNotFound', 'Appointment not found.')}
         </div>
       </div>
     );
@@ -48,7 +55,7 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
   };
 
   const formatFileSize = (bytes?: number) => {
-    if (!bytes || bytes === 0) return 'Unknown size';
+    if (!bytes || bytes === 0) return t('unknownSize', 'Unknown size');
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -120,58 +127,84 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
       }, 100);
     }
   };
+
   const handleView = (filePath: string) => {
     const cleanedBaseUrl = getCleanedBaseUrl();
     const fileUrl = filePath.startsWith('http') ? filePath : `${cleanedBaseUrl}${filePath}`;
     window.open(fileUrl, '_blank');
   };
 
+  const handleDelete = async (fileId: string) => {
+    if (!window.confirm(t('confirmDeleteFile', 'Are you sure you want to delete this file?'))) {
+      return;
+    }
 
+    try {
+      await deleteFileMutation.mutateAsync({
+        clientId: appointment.client._id,
+        fileId: fileId
+      });
+     window.location.reload();
+    } catch (error) {
+      console.error('Failed to delete file:', error);
+    }
+  };
 
   return (
     <div className="h-full max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-100px)] overflow-y-auto p-4 md:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <h2 className="text-xl md:text-2xl font-bold text-gray-800 top-0 bg-white py-2 z-10">
-          Appointment Details
+          {t('appointmentDetailsTitle', 'Appointment Details')}
         </h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Client Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Client Information</h3>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+              {t('clientInformationTitle', 'Client Information')}
+            </h3>
 
             <div>
-              <p className="text-sm text-gray-600">Full Name</p>
+              <p className="text-sm text-gray-600">
+                {t('fullNameLabel', 'Full Name')}
+              </p>
               <p className="text-gray-800 font-medium">
                 {appointment.client.firstName} {appointment.client.lastName}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-gray-600">Contact Information</p>
+              <p className="text-sm text-gray-600">
+                {t('contactInformationLabel', 'Contact Information')}
+              </p>
               <p className="text-gray-800 font-medium break-all">{appointment.client.email}</p>
               <p className="text-gray-600 text-sm">+{appointment.client.mobile}</p>
             </div>
 
             <div>
-              <p className="text-sm text-gray-600">Demographics</p>
+              <p className="text-sm text-gray-600">
+                {t('demographicsLabel', 'Demographics')}
+              </p>
               <p className="text-gray-800 font-medium capitalize">{appointment.client.gender}</p>
               <p className="text-gray-600 text-sm">{appointment.client.nationality} • {appointment.client.immigrationStatus}</p>
             </div>
 
             <div>
-              <p className="text-sm text-gray-600">Language</p>
+              <p className="text-sm text-gray-600">
+                {t('languageLabel', 'Language')}
+              </p>
               <p className="text-gray-800 font-medium">{appointment.client.language}</p>
             </div>
             <div>
-
               <EmergencyAlertStatus
                 status={appointment.client.emergency_alert?.status === true}
                 reason={appointment.client.emergency_alert?.reason}
               />
             </div>
             <div>
-              <p className="text-sm text-gray-600">Client Status</p>
+              <p className="text-sm text-gray-600">
+                {t('clientStatusLabel', 'Client Status')}
+              </p>
               <span className={`px-2 py-1 rounded-full text-xs ${statusColors[appointment.client.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
                 }`}>
                 {appointment.client.status}
@@ -181,10 +214,14 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
 
           {/* Appointment Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Appointment Information</h3>
+            <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+              {t('appointmentInformationTitle', 'Appointment Information')}
+            </h3>
 
             <div>
-              <p className="text-sm text-gray-600">Date & Time</p>
+              <p className="text-sm text-gray-600">
+                {t('dateAndTimeLabel', 'Date & Time')}
+              </p>
               <p className="text-gray-800 font-medium">{formatDate(appointment.date)}</p>
               <p className="text-gray-600 text-sm">
                 {formatTime(appointment.startTime)} - {formatTime(appointment.endTime)}
@@ -192,7 +229,9 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
             </div>
 
             <div>
-              <p className="text-sm text-gray-600">Appointment Status</p>
+              <p className="text-sm text-gray-600">
+                {t('appointmentStatusLabel', 'Appointment Status')}
+              </p>
               <span className={`px-2 py-1 rounded-full text-xs ${statusColors[appointment.status as keyof typeof statusColors] || "bg-gray-100 text-gray-800"
                 }`}>
                 {appointment.status}
@@ -201,13 +240,17 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
 
             {appointment.remark && (
               <div>
-                <p className="text-sm text-gray-600">Remarks</p>
+                <p className="text-sm text-gray-600">
+                  {t('remarksLabel', 'Remarks')}
+                </p>
                 <p className="text-gray-800 font-medium italic">"{appointment.remark}"</p>
               </div>
             )}
 
             <div>
-              <p className="text-sm text-gray-600">Services Requested</p>
+              <p className="text-sm text-gray-600">
+                {t('servicesRequestedLabel', 'Services Requested')}
+              </p>
               <div className="flex flex-wrap gap-2 mt-1">
                 {appointment.client.services.map((service, index) => (
                   <span
@@ -226,7 +269,7 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
         {appointment.client.files && appointment.client.files.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
-              Uploaded Documents ({appointment.client.files.length})
+              {t('uploadedDocumentsTitle', 'Uploaded Documents')} ({appointment.client.files.length})
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -250,7 +293,9 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
                         <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-xs text-gray-400 mt-1">
                           <span>{formatFileSize(file.size)}</span>
                           <span className="hidden sm:inline">•</span>
-                          <span className="text-xs">Uploaded: {formatFileDate(file.uploadedAt)}</span>
+                          <span className="text-xs">
+                            {t('uploadedLabel', 'Uploaded:')} {formatFileDate(file.uploadedAt)}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -260,19 +305,26 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
                     <button
                       onClick={() => handleView(file.fileUrl)}
                       className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
-                      title="View file"
+                      title={t('viewFileTooltip', 'View file')}
                     >
                       <ExternalLink size={14} />
-                      <span className="whitespace-nowrap">View</span>
+                      <span className="whitespace-nowrap">{t('viewButton', 'View')}</span>
                     </button>
-                    <button
-                      onClick={() => handleDownload(file.fileUrl, file.fileName)}
-                      className="flex items-center gap-1 px-3 py-1.5 text-sm bg-gray-50 text-gray-700 rounded hover:bg-gray-100 transition-colors"
-                      title="Download file"
-                    >
-                      <Download size={14} />
-                      <span className="whitespace-nowrap">Download</span>
-                    </button>
+                  
+                    {/* Delete button - only shown for Personnel Admin */}
+                    {isPersonnelAdmin && file._id && (
+                      <button
+                        onClick={() => handleDelete(file._id)}
+                        disabled={deleteFileMutation.isPending}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title={t('deleteFileTooltip', 'Delete file')}
+                      >
+                        <Trash2 size={14} />
+                        <span className="whitespace-nowrap">
+                          {deleteFileMutation.isPending ? t('deleting', 'Deleting...') : t('deleteButton', 'Delete')}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -282,35 +334,45 @@ export const PersonnelAppointmentDetails: React.FC<PersonnelAppointmentDetailsPr
 
         {/* Additional Information */}
         <div className="space-y-4 pb-6">
-          <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Additional Information</h3>
+          <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">
+            {t('additionalInformationTitle', 'Additional Information')}
+          </h3>
 
           {appointment.client.message && (
             <div>
-              <p className="text-sm text-gray-600">Client Message</p>
+              <p className="text-sm text-gray-600">
+                {t('clientMessageLabel', 'Client Message')}
+              </p>
               <p className="text-gray-800 font-medium italic break-words">"{appointment.client.message}"</p>
             </div>
           )}
 
           {appointment.client.statusReason && (
             <div>
-              <p className="text-sm text-gray-600">Status Reason</p>
+              <p className="text-sm text-gray-600">
+                {t('statusReasonLabel', 'Status Reason')}
+              </p>
               <p className="text-gray-800 font-medium italic break-words">"{appointment.client.statusReason}"</p>
             </div>
           )}
 
           <div>
-            <p className="text-sm text-gray-600">Appointment Created</p>
+            <p className="text-sm text-gray-600">
+              {t('appointmentCreatedLabel', 'Appointment Created')}
+            </p>
             <p className="text-gray-800 font-medium">
-              {new Date(appointment.createdAt).toLocaleDateString()} at{" "}
+              {new Date(appointment.createdAt).toLocaleDateString()} {t('atLabel', 'at')}{" "}
               {new Date(appointment.createdAt).toLocaleTimeString()}
             </p>
           </div>
 
           {appointment.updatedAt && appointment.updatedAt !== appointment.createdAt && (
             <div>
-              <p className="text-sm text-gray-600">Last Updated</p>
+              <p className="text-sm text-gray-600">
+                {t('lastUpdatedLabel', 'Last Updated')}
+              </p>
               <p className="text-gray-800 font-medium">
-                {new Date(appointment.updatedAt).toLocaleDateString()} at{" "}
+                {new Date(appointment.updatedAt).toLocaleDateString()} {t('atLabel', 'at')}{" "}
                 {new Date(appointment.updatedAt).toLocaleTimeString()}
               </p>
             </div>

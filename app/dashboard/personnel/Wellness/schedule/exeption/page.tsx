@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRuleManagement } from "@/domain/use-cases/rule";
 import { Exception } from "@/domain/entities/appointment";
 import { useSession } from "next-auth/react";
-import { toast } from "react-toastify";
+import { useTranslation } from '@/components/providers/translation.provider';
 
 interface HolidayExceptionsProps {
     existingExceptions?: Exception[];
@@ -14,23 +14,23 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
 }) => {
     const { data: session } = useSession();
     const { createExceptionMutation, deleteExceptionMutation, useExceptions } = useRuleManagement();
+    const { t } = useTranslation();
     
     const personnelId = session?.user?.id || session?.user?.id;
 
     // Fetch exceptions
     const { data: exceptions = [] } = useExceptions(personnelId);
 
+    console.log(exceptions,"this is the exeptions")
+
     const exceptionTypes = [
-        { value: "holiday", label: "Holiday" },
-        { value: "leave", label: "Leave" },
+        { value: "holiday", label: t('holidayLabel', 'Holiday') },
     ];
 
     const [formData, setFormData] = useState({
         date: "",
         type: "holiday" as Exception['type'],
         reason: "",
-        startTime: "09:00",
-        endTime: "17:00"
     });
 
     const [errors, setErrors] = useState<{ date?: string; reason?: string }>({});
@@ -39,21 +39,21 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
         const newErrors: { date?: string; reason?: string } = {};
 
         if (!formData.date) {
-            newErrors.date = "Date is required";
+            newErrors.date = t('dateRequiredMessage', 'Date is required');
         } else {
             const selectedDate = new Date(formData.date);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
             if (selectedDate < today) {
-                newErrors.date = "Cannot add exceptions for past dates";
+                newErrors.date = t('noPastDatesMessage', 'Cannot add exceptions for past dates');
             }
         }
 
         if (!formData.reason.trim()) {
-            newErrors.reason = "Reason is required";
+            newErrors.reason = t('reasonRequiredMessage', 'Reason is required');
         } else if (formData.reason.trim().length < 3) {
-            newErrors.reason = "Reason must be at least 3 characters";
+            newErrors.reason = t('reasonMinLengthMessage', 'Reason must be at least 3 characters');
         }
 
         setErrors(newErrors);
@@ -69,11 +69,9 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
 
         const exception: Exception = {
             personnel: personnelId,
-            date: formData.date,
+            date: `${formData.date}T00:00:00.000Z`,
             type: formData.type,
             reason: formData.reason.trim(),
-            startTime: formData.type === "holiday" ? undefined : formData.startTime,
-            endTime: formData.type === "holiday" ? undefined : formData.endTime
         };
 
         createExceptionMutation.mutate(exception, {
@@ -82,28 +80,15 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                     date: "",
                     type: "holiday",
                     reason: "",
-                    startTime: "09:00",
-                    endTime: "17:00"
                 });
                 setErrors({});
-                toast.success("Exception added successfully!");
-            },
-            onError: (error: Error) => {
-                toast.error(`Error adding exception: ${error.message}`);
             }
         });
     };
 
     const handleDeleteException = (exceptionId: string) => {
-        if (window.confirm("Are you sure you want to delete this exception?")) {
-            deleteExceptionMutation.mutate(exceptionId, {
-                onSuccess: () => {
-                    toast.success("Exception deleted successfully!");
-                },
-                onError: (error: Error) => {
-                    toast.error(`Error deleting exception: ${error.message}`);
-                }
-            });
+        if (window.confirm(t('deleteConfirmMessage', 'Are you sure you want to delete this exception?'))) {
+            deleteExceptionMutation.mutate(exceptionId);
         }
     };
 
@@ -116,22 +101,12 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
         });
     };
 
-    const handleTypeChange = (type: Exception['type']) => {
-        setFormData(prev => ({ 
-            ...prev, 
-            type,
-            // Reset times when switching to holiday
-            startTime: type === "holiday" ? "" : prev.startTime || "09:00",
-            endTime: type === "holiday" ? "" : prev.endTime || "17:00"
-        }));
-    };
-
     if (!personnelId) {
         return (
             <div className="max-w-2xl mx-auto p-6">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-yellow-800">
-                        Please log in to manage holiday exceptions.
+                        {t('loginRequiredMessage', 'Please log in to manage holiday exceptions.')}
                     </p>
                 </div>
             </div>
@@ -141,19 +116,21 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
     return (
         <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow">
             <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900">Holiday & Exemptions</h3>
+                <h3 className="text-xl font-semibold text-gray-900">
+                    {t('holidayExceptionsTitle', 'Holiday & Exemptions')}
+                </h3>
                 <p className="text-gray-600 mt-1 text-sm">
-                    Add days when you will not be available for appointments
+                    {t('holidayExceptionsSubtitle', 'Add days when you will not be available for appointments')}
                 </p>
             </div>
 
             {/* Add Exception Form */}
             <form onSubmit={handleSubmit} className="space-y-6 mb-8 p-6 bg-gray-50 rounded-lg">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {/* Date */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Date *
+                            {t('dateLabel', 'Date *')}
                         </label>
                         <input
                             type="date"
@@ -172,11 +149,11 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                     {/* Type */}
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Type *
+                            {t('typeLabel', 'Type *')}
                         </label>
                         <select
                             value={formData.type}
-                            onChange={(e) => handleTypeChange(e.target.value as Exception['type'])}
+                            onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as Exception['type'] }))}
                             className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             {exceptionTypes.map(type => (
@@ -187,52 +164,16 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                         </select>
                     </div>
 
-                    {/* Start Time - Only show for non-holiday types */}
-                    {formData.type !== "holiday" && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                Start Time
-                            </label>
-                            <input
-                                type="time"
-                                value={formData.startTime}
-                                onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    )}
-
-                    {/* End Time - Only show for non-holiday types */}
-                    {formData.type !== "holiday" && (
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                End Time
-                            </label>
-                            <input
-                                type="time"
-                                value={formData.endTime}
-                                onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
-                                className="w-full px-3 py-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                    )}
-
                     {/* Reason */}
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-3">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Reason *
+                            {t('reasonLabel', 'Reason *')}
                         </label>
                         <input
                             type="text"
                             value={formData.reason}
                             onChange={(e) => setFormData(prev => ({ ...prev, reason: e.target.value }))}
-                            placeholder={
-                                formData.type === "holiday" 
-                                    ? "e.g., National Holiday, Christmas, etc."
-                                    : formData.type === "leave"
-                                    ? "e.g., Personal Time Off, Vacation, etc."
-                                    : "e.g., Training, Meeting, etc."
-                            }
+                            placeholder={t('reasonPlaceholder', 'e.g., National Holiday, Personal Time Off, etc.')}
                             className={`w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                                 errors.reason ? 'border-red-300' : 'border-gray-200'
                             }`}
@@ -250,23 +191,40 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                         disabled={createExceptionMutation.isPending}
                         className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
                     >
-                        {createExceptionMutation.isPending ? "Adding..." : "Add Exception"}
+                        {createExceptionMutation.isPending ? t('addingMessage', 'Adding...') : t('addExceptionButton', 'Add Exception')}
                     </button>
                 </div>
+
+                {/* Messages */}
+                {createExceptionMutation.isError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+                        {t('errorAddingExceptionMessage', 'Error adding exception:')} {createExceptionMutation.error.message}
+                    </div>
+                )}
+
+                {createExceptionMutation.isSuccess && (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-800">
+                        {t('exceptionAddedSuccessMessage', 'Exemption added successfully!')}
+                    </div>
+                )}
             </form>
 
             {/* Existing Exceptions List */}
             <div>
-                <h4 className="font-medium text-gray-900 mb-4 text-lg">Scheduled Exemptions</h4>
+                <h4 className="font-medium text-gray-900 mb-4 text-lg">
+                    {t('scheduledExemptionsTitle', 'Scheduled Exemptions')}
+                </h4>
                 
                 {exceptions.length === 0 ? (
                     <div className="text-center py-8 text-gray-500">
-                        <p>No exceptions scheduled yet.</p>
-                        <p className="text-sm mt-1">Add exceptions above to block appointment dates.</p>
+                        <p>{t('noExceptionsMessage', 'No exceptions scheduled yet.')}</p>
+                        <p className="text-sm mt-1">
+                            {t('addExceptionsHintMessage', 'Add exceptions above to block appointment dates.')}
+                        </p>
                     </div>
                 ) : (
                     <div className="space-y-3">
-                        {exceptions.map((exception: any) => (
+                        {exceptions.map((exception:any) => (
                             <div
                                 key={exception._id}
                                 className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -274,7 +232,7 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                                 <div className="flex items-center space-x-4">
                                     <div className={`w-3 h-3 rounded-full ${
                                         exception.type === 'holiday' ? 'bg-red-500' :
-                                        exception.type === 'leave' ? 'bg-blue-500' :
+                                        exception.type === 'personal' ? 'bg-blue-500' :
                                         'bg-orange-500'
                                     }`}></div>
                                     <div>
@@ -284,9 +242,6 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                                         <p className="text-sm text-gray-600">
                                             {exception.reason} • 
                                             <span className="capitalize"> {exception.type}</span>
-                                            {exception.type !== "holiday" && exception.startTime && exception.endTime && (
-                                                <span> • {exception.startTime} - {exception.endTime}</span>
-                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -296,10 +251,17 @@ const HolidayExceptions: React.FC<HolidayExceptionsProps> = ({
                                     disabled={deleteExceptionMutation.isPending}
                                     className="px-3 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
-                                    {deleteExceptionMutation.isPending ? "Deleting..." : "Delete"}
+                                    {deleteExceptionMutation.isPending ? t('deletingMessage', 'Deleting...') : t('deleteButton', 'Delete')}
                                 </button>
                             </div>
                         ))}
+                    </div>
+                )}
+
+                {/* Delete Error Message */}
+                {deleteExceptionMutation.isError && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-800">
+                        {t('errorDeletingExceptionMessage', 'Error deleting exception:')} {deleteExceptionMutation.error.message}
                     </div>
                 )}
             </div>

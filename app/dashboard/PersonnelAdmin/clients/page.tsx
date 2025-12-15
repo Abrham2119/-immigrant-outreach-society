@@ -4,7 +4,7 @@ import { AppointmentStatus } from "@/domain/entities/appointmentPersonnel";
 import { useState } from "react";
 
 export default function AppointmentsPage() {
-  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>('booked');
+  const [selectedStatus, setSelectedStatus] = useState<AppointmentStatus>('');
 
   return (
     <div>

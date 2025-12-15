@@ -16,7 +16,7 @@ const AvailabilitySchedule: React.FC<AvailabilityScheduleProps> = ({
 }) => {
     const { data: session } = useSession();
     const { createRuleMutation } = useRuleManagement();
-    const { t } = useTranslation(); // Added hook
+    const { t } = useTranslation(); 
 
     const personnelId = session?.user?.id;
 

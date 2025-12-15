@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslation } from '@/components/providers/translation.provider';
 import { File } from 'lucide-react';
 import { ClientDocumentUpload } from './ClientDocumentUpload';
 import { EmergencyAlertButton } from '../ui/Button/EmergencyAlertButton';
@@ -17,6 +17,8 @@ export const ClientDocumentsModal: React.FC<ClientDocumentsModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
@@ -24,7 +26,7 @@ export const ClientDocumentsModal: React.FC<ClientDocumentsModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b">
           <div>
             <h2 className="text-2xl font-bold text-gray-800">
-              Documents for {clientName}
+              {t('documentsForClient', 'Documents for')} {clientName}
             </h2>
           </div>
           <div className="flex items-center pr-3 gap-2">
@@ -53,7 +55,7 @@ export const ClientDocumentsModal: React.FC<ClientDocumentsModalProps> = ({
             onClick={onClose}
             className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
           >
-            Close
+            {t('closeButton', 'Close')}
           </button>
         </div>
       </div>

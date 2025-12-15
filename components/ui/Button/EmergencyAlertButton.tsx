@@ -1,3 +1,4 @@
+import { useTranslation } from '@/components/providers/translation.provider';
 import { useUpdateEmergencyAlertStatus } from '@/application/hooks/useNotification';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
@@ -8,6 +9,7 @@ interface EmergencyAlertButtonProps {
 }
 
 export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clientId }) => {
+  const { t } = useTranslation();
   const { mutate, isPending } = useUpdateEmergencyAlertStatus();
   const [showModal, setShowModal] = useState(false);
   const [reason, setReason] = useState('');
@@ -18,10 +20,10 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
     let isValid = true;
 
     if (!reason.trim()) {
-      newErrors.reason = 'Reason is required';
+      newErrors.reason = t('reasonRequiredMessage', 'Reason is required');
       isValid = false;
     } else if (reason.trim().length < 3) {
-      newErrors.reason = 'Reason must be at least 3 characters';
+      newErrors.reason = t('reasonMinLengthMessage', 'Reason must be at least 3 characters');
       isValid = false;
     }
 
@@ -52,7 +54,7 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
       reason: reason.trim()
     }, {
       onSuccess: () => {
-        toast.success('Emergency alert activated successfully!', {
+        toast.success(t('emergencyAlertActivatedSuccess', 'Emergency alert activated successfully!'), {
           position: "top-right",
           autoClose: 3000,
         });
@@ -60,7 +62,7 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
         setReason('');
       },
       onError: (error) => {
-        toast.error(`Failed to activate emergency alert: ${error.message}`, {
+        toast.error(t('failedToActivateEmergencyAlert', 'Failed to activate emergency alert:') + ' ' + error.message, {
           position: "top-right",
           autoClose: 5000,
         });
@@ -74,7 +76,7 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
         onClick={handleOpenModal}
         className="px-3 py-1.5 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 text-sm"
       >
-        Emergency Alert
+        {t('emergencyAlertButton', 'Emergency Alert')}
       </button>
 
       {showModal && (
@@ -82,7 +84,7 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
           <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
             <div className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Activate Emergency Alert
+                {t('activateEmergencyAlertTitle', 'Activate Emergency Alert')}
               </h3>
 
               <div className="mb-4">
@@ -98,14 +100,14 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
                   rows={4}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 ${errors.reason ? 'border-red-500' : 'border-gray-300'
                     }`}
-                  placeholder="Enter the reason for activating the emergency alert..."
+                  placeholder={t('enterReasonForEmergencyAlertPlaceholder', 'Enter the reason for activating the emergency alert...')}
                   disabled={isPending}
                 />
                 {errors.reason && (
                   <p className="mt-1 text-sm text-red-600">{errors.reason}</p>
                 )}
                 <p className="mt-1 text-xs text-gray-500">
-                  Please provide a clear reason for activating the emergency alert. Minimum 3 characters.
+                  {t('provideClearReasonForEmergencyAlert', 'Please provide a clear reason for activating the emergency alert. Minimum 3 characters.')}
                 </p>
               </div>
 
@@ -115,7 +117,7 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
                   disabled={isPending}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 disabled:opacity-50"
                 >
-                  Cancel
+                  {t('cancelButton', 'Cancel')}
                 </button>
                 <button
                   onClick={handleSubmit}
@@ -125,10 +127,10 @@ export const EmergencyAlertButton: React.FC<EmergencyAlertButtonProps> = ({ clie
                   {isPending ? (
                     <>
                       <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Activating...
+                      {t('activatingButton', 'Activating...')}
                     </>
                   ) : (
-                    'Activate Alert'
+                    t('activateAlertButton', 'Activate Alert')
                   )}
                 </button>
               </div>

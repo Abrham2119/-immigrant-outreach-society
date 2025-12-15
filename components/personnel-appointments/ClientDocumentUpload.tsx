@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslation } from '@/components/providers/translation.provider';
 import { Upload, File, X, Loader2, Maximize2, FileText, Image as ImageIcon, FileSpreadsheet } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useUploadClientFiles } from '@/application/hooks/useClientDocuments';
@@ -11,8 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 interface ClientDocumentUploadProps {
   clientId: string;
   clientName: string;
-    onClose: () => void;
-
+  onClose: () => void;
 }
 
 // Type guard to check if it's a File
@@ -30,6 +29,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
   clientName,
   onClose
 }) => {
+  const { t } = useTranslation();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -37,9 +37,9 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<File | ClientFile | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
-  
+
   // Removed uploadedFiles state since we don't want to show them after upload
-  
+
   const uploadMutation = useUploadClientFiles();
 
   // Cleanup object URLs on unmount
@@ -75,17 +75,16 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
     }
     setPreviewUrl('');
   };
-
   const handleUpload = async () => {
     if (selectedFiles.length === 0) {
-      toast.error('Please select at least one file');
-      setUploadError('Please select at least one file');
+      toast.error(t('pleaseSelectAtLeastOneFile', 'Please select at least one file'));
+      setUploadError(t('pleaseSelectAtLeastOneFile', 'Please select at least one file'));
       return;
     }
 
     if (selectedFiles.length > 10) {
-      toast.error('Maximum 10 files allowed per upload');
-      setUploadError('Maximum 10 files allowed per upload');
+      toast.error(t('maximumFilesAllowedPerUpload', 'Maximum 10 files allowed per upload'));
+      setUploadError(t('maximumFilesAllowedPerUpload', 'Maximum 10 files allowed per upload'));
       return;
     }
 
@@ -93,7 +92,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
     const maxSize = 10 * 1024 * 1024; // 10MB
     const oversizedFiles = selectedFiles.filter(file => file.size > maxSize);
     if (oversizedFiles.length > 0) {
-      const errorMsg = `Files must be less than 10MB: ${oversizedFiles.map(f => f.name).join(', ')}`;
+      const errorMsg = t('filesMustBeLessThan10MB', 'Files must be less than 10MB:') + ' ' + oversizedFiles.map(f => f.name).join(', ');
       toast.error(errorMsg);
       setUploadError(errorMsg);
       return;
@@ -129,26 +128,28 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
         setIsUploading(false);
         setUploadProgress(0);
         setUploadError(null);
-        
+
         // Clear file input
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
-        
+
         // Show success message
-        toast.success(`Successfully uploaded files for ${clientName}`);
-        onClose()
+        toast.success(t('successfullyUploadedFilesForClient', 'Successfully uploaded files for ') + clientName);
+        window.location.reload();
+        onClose();
       }, 500);
     } catch (error) {
       setIsUploading(false);
-      toast.error('Upload failed. Please try again.');
-      setUploadError('Upload failed. Please try again.');
-      console.error('Upload error:', error);
+      toast.error(t('uploadFailedPleaseTryAgain', 'Upload failed. Please try again.'));
+      setUploadError(t('uploadFailedPleaseTryAgain', 'Upload failed. Please try again.'));
+      console.error(t('uploadError', 'Upload error:'), error);
     }
   };
 
+
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return t('zeroBytes', '0 Bytes');
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -166,11 +167,11 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
 
   const getFileType = (fileName: string) => {
     const ext = fileName.split('.').pop()?.toLowerCase();
-    if (['pdf'].includes(ext || '')) return 'PDF Document';
-    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext || '')) return 'Image';
-    if (['doc', 'docx'].includes(ext || '')) return 'Word Document';
-    if (['xls', 'xlsx'].includes(ext || '')) return 'Excel Spreadsheet';
-    return 'Document';
+    if (['pdf'].includes(ext || '')) return t('pdfDocument', 'PDF Document');
+    if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(ext || '')) return t('imageFile', 'Image');
+    if (['doc', 'docx'].includes(ext || '')) return t('wordDocument', 'Word Document');
+    if (['xls', 'xlsx'].includes(ext || '')) return t('excelSpreadsheet', 'Excel Spreadsheet');
+    return t('documentFile', 'Document');
   };
 
   return (
@@ -179,7 +180,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
       <div className="space-y-4 p-4 bg-white rounded-lg border border-gray-200">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-800">
-            Upload Documents for {clientName}
+            {t('uploadDocumentsForClient', 'Upload Documents for')} {clientName}
           </h3>
           <button
             onClick={() => fileInputRef.current?.click()}
@@ -187,7 +188,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Upload size={16} />
-            Select Files
+            {t('selectFilesButton', 'Select Files')}
           </button>
         </div>
 
@@ -210,14 +211,14 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-sm text-gray-600">
-                {selectedFiles.length} file(s) ready to upload
+                {selectedFiles.length} {t('filesReadyToUpload', 'file(s) ready to upload')}
               </span>
               <button
                 onClick={() => setSelectedFiles([])}
                 disabled={isUploading}
                 className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50"
               >
-                Clear All
+                {t('clearAllButton', 'Clear All')}
               </button>
             </div>
 
@@ -241,7 +242,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
                         <span>•</span>
                         <span>{formatFileSize(file.size)}</span>
                         <span>•</span>
-                        <span className="text-blue-600 font-medium">Ready to upload</span>
+                        <span className="text-blue-600 font-medium">{t('readyToUpload', 'Ready to upload')}</span>
                       </div>
                     </div>
                   </div>
@@ -252,7 +253,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
                         handleFilePreview(file);
                       }}
                       className="p-1 text-gray-400 hover:text-blue-600"
-                      title="Preview file"
+                      title={t('previewFileTooltip', 'Preview file')}
                     >
                       <Maximize2 size={16} />
                     </button>
@@ -263,7 +264,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
                       }}
                       disabled={isUploading}
                       className="p-1 text-gray-400 hover:text-red-500 disabled:opacity-50"
-                      title="Remove file"
+                      title={t('removeFileTooltip', 'Remove file')}
                     >
                       <X size={16} />
                     </button>
@@ -281,7 +282,7 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
                   />
                 </div>
                 <p className="text-sm text-gray-600 text-center">
-                  Uploading... {uploadProgress}%
+                  {t('uploadingProgress', 'Uploading...')} {uploadProgress}%
                 </p>
               </div>
             )}
@@ -294,12 +295,12 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
               {isUploading ? (
                 <>
                   <Loader2 size={18} className="animate-spin" />
-                  Uploading...
+                  {t('uploadingButton', 'Uploading...')}
                 </>
               ) : (
                 <>
                   <Upload size={18} />
-                  Upload {selectedFiles.length} File(s)
+                  {t('uploadButton', 'Upload')} {selectedFiles.length} {t('filesCount', 'File(s)')}
                 </>
               )}
             </button>
@@ -309,13 +310,13 @@ export const ClientDocumentUpload: React.FC<ClientDocumentUploadProps> = ({
         {selectedFiles.length === 0 && !isUploading && (
           <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
             <File className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-            <p className="text-gray-600 mb-2">No files selected</p>
+            <p className="text-gray-600 mb-2">{t('noFilesSelected', 'No files selected')}</p>
             <p className="text-sm text-gray-500">
-              Supported formats: PDF, Images (JPG, PNG, GIF, BMP, WEBP), Documents (DOC, DOCX, XLS, XLSX)
+              {t('supportedFormats', 'Supported formats: PDF, Images (JPG, PNG, GIF, BMP, WEBP), Documents (DOC, DOCX, XLS, XLSX)')}
             </p>
-            <p className="text-xs text-gray-400 mt-1">Max 10 files, 10MB each</p>
+            <p className="text-xs text-gray-400 mt-1">{t('maxFileLimit', 'Max 10 files, 10MB each')}</p>
           </div>
-        )}      
+        )}
       </div>
       {/* Document Preview Modal */}
       {previewFile && (

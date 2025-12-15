@@ -5,11 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import AvailabilitySchedule from './components/AvailabilitySchedule';
 import { getRulesUseCase } from '@/infrastructure/api/appointmentService';
 import RulesList from './components/RulesList';
+import { useTranslation } from '@/components/providers/translation.provider';
 
 const AvailabilityPage = () => {
   const { data: session, status } = useSession();
+  const { t } = useTranslation();
   
-  // Fetch existing rules for this personnel
   const { data: existingRules, isLoading } = useQuery({
     queryKey: ['rules', session?.user?.id],
     queryFn: () => getRulesUseCase(session?.user?.id),
@@ -28,8 +29,12 @@ const AvailabilityPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-          <p className="text-gray-600">Please log in to access this page.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {t('authenticationRequiredTitle', 'Authentication Required')}
+          </h1>
+          <p className="text-gray-600">
+            {t('pleaseLoginToAccess', 'Please log in to access this page.')}
+          </p>
         </div>
       </div>
     );

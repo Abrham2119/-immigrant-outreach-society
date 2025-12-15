@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from "next/link";
+import { useTranslation } from "@/components/providers/translation.provider";
 
 interface EditRuleFormProps {
     ruleId: string;
@@ -14,17 +15,18 @@ interface EditRuleFormProps {
 const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
     const { data: session } = useSession();
     const { useRule, updateRuleMutation } = useRuleManagement();
+    const { t } = useTranslation();
 
     const personnelId = session?.user?.id;
 
     const daysOfWeek = [
-        { id: 0, label: "Su", name: "Sunday" },
-        { id: 1, label: "M", name: "Monday" },
-        { id: 2, label: "T", name: "Tuesday" },
-        { id: 3, label: "W", name: "Wednesday" },
-        { id: 4, label: "Th", name: "Thursday" },
-        { id: 5, label: "F", name: "Friday" },
-        { id: 6, label: "Sa", name: "Saturday" },
+        { id: 0, label: "Su", name: t('sunday', "Sunday") },
+        { id: 1, label: "M", name: t('monday', "Monday") },
+        { id: 2, label: "T", name: t('tuesday', "Tuesday") },
+        { id: 3, label: "W", name: t('wednesday', "Wednesday") },
+        { id: 4, label: "Th", name: t('thursday', "Thursday") },
+        { id: 5, label: "F", name: t('friday', "Friday") },
+        { id: 6, label: "Sa", name: t('saturday', "Saturday") },
     ];
 
     // Helper function to convert time to 24-hour format
@@ -90,7 +92,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
 
     useEffect(() => {
         if (updateRuleMutation.isSuccess) {
-            toast.success("Availability updated successfully!", {
+            toast.success(t('availabilityUpdatedSuccessfully', "Availability updated successfully!"), {
                 position: "top-right",
                 autoClose: 3000,
                 hideProgressBar: false,
@@ -104,7 +106,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
             const error = updateRuleMutation.error as any;
             const errorMessage = error?.response?.data?.message || 
                                error?.message || 
-                               "Error updating availability";
+                               t('errorUpdatingAvailability', "Error updating availability");
             
             toast.error(errorMessage, {
                 position: "top-right",
@@ -115,7 +117,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                 draggable: true,
             });
         }
-    }, [updateRuleMutation.isSuccess, updateRuleMutation.isError, updateRuleMutation.error]);
+    }, [updateRuleMutation.isSuccess, updateRuleMutation.isError, updateRuleMutation.error, t]);
 
     useEffect(() => {
         if (rule) {
@@ -147,14 +149,14 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
 
         // Validate global time range
         if (!validateTimeRange(formData.startTime, formData.endTime)) {
-            newErrors.global = "Start time must be before end time";
+            newErrors.global = t('startTimeMustBeBeforeEndTime', "Start time must be before end time");
         }
 
         // Validate individual day time ranges
         Object.entries(dayAvailability).forEach(([dayId, availability]) => {
             const dayNum = parseInt(dayId);
             if (availability.selected && !validateTimeRange(availability.startTime, availability.endTime)) {
-                dayErrors[dayNum] = "Start time must be before end time";
+                dayErrors[dayNum] = t('startTimeMustBeBeforeEndTime', "Start time must be before end time");
             }
         });
 
@@ -209,7 +211,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
         if (!validateTimeRange(startTime, endTime)) {
             setErrors(prev => ({
                 ...prev,
-                global: "Start time must be before end time"
+                global: t('startTimeMustBeBeforeEndTime', "Start time must be before end time")
             }));
         } else {
             setErrors(prev => ({
@@ -248,7 +250,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
         if (currentDay.selected && !validateTimeRange(newStartTime, newEndTime)) {
             setErrors(prev => {
                 const updatedDays = { ...prev.days };
-                updatedDays[dayId] = "Start time must be before end time";
+                updatedDays[dayId] = t('startTimeMustBeBeforeEndTime', "Start time must be before end time");
                 return {
                     ...prev,
                     days: updatedDays
@@ -280,7 +282,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
         e.preventDefault();
 
         if (!personnelId) {
-            toast.error("Please log in to update your availability.", {
+            toast.error(t('pleaseLoginToUpdateAvailability', "Please log in to update your availability."), {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -289,7 +291,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
 
         // Validate all times before submission
         if (!validateAllTimes()) {
-            toast.error("Please fix the validation errors before submitting.", {
+            toast.error(t('fixValidationErrorsBeforeSubmitting', "Please fix the validation errors before submitting."), {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -298,7 +300,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
 
         // Ensure at least one day is selected
         if (formData.weekdays.length === 0) {
-            toast.error("Please select at least one day.", {
+            toast.error(t('pleaseSelectAtLeastOneDay', "Please select at least one day."), {
                 position: "top-right",
                 autoClose: 5000,
             });
@@ -333,13 +335,17 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Error Loading Rule</h1>
-                    <p className="text-gray-600 mb-4">The rule you're trying to edit could not be found.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-4">
+                        {t('errorLoadingRule', "Error Loading Rule")}
+                    </h1>
+                    <p className="text-gray-600 mb-4">
+                        {t('ruleNotFoundToEdit', "The rule you're trying to edit could not be found.")}
+                    </p>
                     <Link
                         href="/availability"
                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
                     >
-                        Back to Availability
+                        {t('backToAvailability', "Back to Availability")}
                     </Link>
                 </div>
             </div>
@@ -351,7 +357,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
             <div className="max-w-2xl mx-auto p-6">
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-yellow-800">
-                        Please log in to set your availability.
+                        {t('pleaseLoginToSetAvailability', "Please log in to set your availability.")}
                     </p>
                 </div>
             </div>
@@ -363,16 +369,18 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
             <div className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h3 className="text-xl font-semibold text-gray-900">Edit Weekly Worrking hours</h3>
+                        <h3 className="text-xl font-semibold text-gray-900">
+                            {t('editWeeklyWorkingHours', "Edit Weekly Working hours")}
+                        </h3>
                         <p className="text-gray-600 mt-1 text-sm">
-                            Update the time that you will be available to give service
+                            {t('updateTimeAvailableForService', "Update the time that you will be available to give service")}
                         </p>
                     </div>
                     <Link
                         href="/availability"
                         className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50"
                     >
-                        Back to Availability
+                        {t('backToAvailability', "Back to Availability")}
                     </Link>
                 </div>
 
@@ -380,12 +388,12 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                     {/* Global Time Settings */}
                     <div className="p-4 bg-gray-50 rounded-lg">
                         <h4 className="font-medium text-gray-900 mb-3 text-sm">
-                            Global Time Settings (24-hour format)
+                            {t('globalTimeSettings24hourFormat', "Global Time Settings (24-hour format)")}
                         </h4>
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Start Time
+                                    {t('startTime', "Start Time")}
                                 </label>
                                 <input
                                     type="time"
@@ -403,7 +411,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                             </div>
                             <div className="flex-1">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    End Time
+                                    {t('endTime', "End Time")}
                                 </label>
                                 <input
                                     type="time"
@@ -424,7 +432,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                             <p className="text-red-600 text-xs mt-2">{errors.global}</p>
                         )}
                         <p className="text-xs text-gray-500 mt-2">
-                            Times are displayed in 24-hour format (00:00 - 23:59)
+                            {t('timesDisplayedIn24hourFormat', "Times are displayed in 24-hour format (00:00 - 23:59)")}
                         </p>
                     </div>
 
@@ -434,16 +442,16 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                             <thead>
                                 <tr className="bg-gray-50">
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        Day
+                                        {t('day', "Day")}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        Start Time
+                                        {t('startTime', "Start Time")}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        End Time
+                                        {t('endTime', "End Time")}
                                     </th>
                                     <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200">
-                                        Available
+                                        {t('available', "Available")}
                                     </th>
                                 </tr>
                             </thead>
@@ -510,7 +518,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                     {errors.days && Object.keys(errors.days).length > 0 && (
                         <div className="p-3 bg-red-50 border border-red-200 rounded-md">
                             <p className="text-red-800 text-sm font-medium mb-2">
-                                Time range errors:
+                                {t('timeRangeErrors', "Time range errors:")}
                             </p>
                             <ul className="text-red-700 text-sm list-disc list-inside">
                                 {Object.entries(errors.days).map(([dayId, error]) => {
@@ -534,7 +542,7 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                             htmlFor="endDate"
                             className="block text-sm font-medium text-gray-700 mb-2"
                         >
-                            End Date (optional)
+                            {t('endDateOptional', "End Date (optional)")}
                         </label>
                         <input
                             type="date"
@@ -550,7 +558,9 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
 
                     {/* Timezone */}
                     <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <p className="font-medium text-gray-900 mb-2">Time zone</p>
+                        <p className="font-medium text-gray-900 mb-2">
+                            {t('timeZone', "Time zone")}
+                        </p>
                         <label className="flex items-center text-sm text-gray-700">
                             <input
                                 type="checkbox"
@@ -558,7 +568,9 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                                 readOnly
                                 className="h-4 w-4 text-blue-600 border-gray-200 rounded"
                             />
-                            <span className="ml-2">Mountain Time (Canada)</span>
+                            <span className="ml-2">
+                                {t('mountainTimeCanada', "Mountain Time (Canada)")}
+                            </span>
                         </label>
                     </div>
 
@@ -579,16 +591,16 @@ const EditRuleForm: React.FC<EditRuleFormProps> = ({ ruleId }) => {
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Updating...
+                                    {t('updating', "Updating...")}
                                 </div>
-                            ) : "Update Availability"}
+                            ) : t('updateAvailability', "Update Availability")}
                         </button>
                         
                         <Link
                             href="/availability"
                             className="px-6 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                         >
-                            Cancel
+                            {t('cancel', "Cancel")}
                         </Link>
                     </div>
                 </form>

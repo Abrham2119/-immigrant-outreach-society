@@ -205,7 +205,7 @@ export default function FormsPage() {
                       </div>
                       {form.client?.emergency_alert?.status === true && (
                             <span className="text-red-600 text-xs font-semibold mt-0.5">
-                              Emergency Alert
+                              Emergency
                             </span>
                           )}
                     </td>

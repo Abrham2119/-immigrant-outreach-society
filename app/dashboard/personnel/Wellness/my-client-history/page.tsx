@@ -204,7 +204,7 @@ export default function PersonnelClientsPage() {
                           <div>{getClientName(form)}</div>
                           {form.client?.emergency_alert === true && (
                             <span className="text-red-600 text-xs font-semibold mt-0.5">
-                              Emergency Alert
+                              Emergency
                             </span>
                           )}
                         </div>

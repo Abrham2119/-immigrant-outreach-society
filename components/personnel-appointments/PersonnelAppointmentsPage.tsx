@@ -1,5 +1,5 @@
 "use client";
-
+import { useTranslation } from '@/components/providers/translation.provider';
 import { usePersonnelAppointmentManagement } from '@/application/hooks/usePersonnelAppointments';
 import { Pagination } from '@/components/client/Pagination';
 import { assessmentForms } from '@/domain/constants/assessmentForms';
@@ -30,13 +30,14 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   selectedStatus: externalStatus,
   onStatusChange
 }) => {
+  const { t } = useTranslation();
   const [search, setSearch] = useState<string>("");
   const [pageNum, setPageNum] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(8);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [isRejectionModalOpen, setIsRejectionModalOpen] = useState(false);
-  const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false); // Add this state
+  const [isDocumentsModalOpen, setIsDocumentsModalOpen] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentResponse | null>(null);
   const [selectedAppointmentForAssessment, setSelectedAppointmentForAssessment] = useState<AppointmentResponse | null>(null);
   const [selectedClientForDocuments, setSelectedClientForDocuments] = useState<{
@@ -54,7 +55,6 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   const { personnelId, usePersonnelAppointments, useUpdateAppointmentStatus } = usePersonnelAppointmentManagement();
 
-  // ALWAYS call hooks at the top level - never conditionally
   const { data: appointmentsData, isLoading, error } = usePersonnelAppointments({
     personnelId: personnelId || '',
     status: externalStatus || '',
@@ -67,13 +67,11 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   const updateAppointmentStatusMutation = useUpdateAppointmentStatus();
 
-  // Always calculate these, even if data is undefined
   const appointments = appointmentsData?.data || [];
   const totalPages = appointmentsData?.meta?.totalPages || 1;
   const totalCount = appointmentsData?.meta?.total || 0;
   const currentCount = appointmentsData?.meta?.count || 0;
 
-  // Filter appointments based on selected status filter
   const filteredAppointments = appointments.filter(appointment => {
     if (selectedFilter === 'all') return true;
     return appointment.status === selectedFilter;
@@ -117,6 +115,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   const closeDocumentsModal = () => {
     setIsDocumentsModalOpen(false);
     setSelectedClientForDocuments(null);
+    
   };
 
   const handleFormSelect = (formSlug: string) => {
@@ -136,7 +135,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
   const confirmRejection = async () => {
     if (!rejectionReason.trim()) {
-      setRejectionError('Reason for rejection is required');
+      setRejectionError(t('reasonForRejectionRequired', 'Reason for rejection is required'));
       return;
     }
 
@@ -161,7 +160,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
       });
       setRemark('');
     } catch (error) {
-      console.error('Failed to update appointment status:', error);
+      console.error(t('failedToUpdateAppointmentStatus', 'Failed to update appointment status:'), error);
     } finally {
       setStatusUpdateLoading(null);
     }
@@ -184,7 +183,6 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   };
 
   const StatusDropdown = ({ appointment }: { appointment: AppointmentResponse }) => {
-    console.log("appointment", appointment)
     const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
       const newStatus = e.target.value;
 
@@ -204,24 +202,23 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
           "bg-gray-100 text-gray-800"
           } ${statusUpdateLoading === appointment._id ? "opacity-50" : ""}`}
       >
-        <option value="booked">Booked</option>
-        <option value="completed">Completed</option>
-        <option value="rejected">Rejected</option>
-        <option value="accepted">Accepted</option>
-
-
+        <option value="booked">{t('statusBooked', 'Booked')}</option>
+        <option value="completed">{t('statusCompleted', 'Completed')}</option>
+        <option value="rejected">{t('statusRejected', 'Rejected')}</option>
+        <option value="accepted">{t('statusAccepted', 'Accepted')}</option>
       </select>
     );
   };
 
-  // Early return after all hooks have been called
   if (!personnelId) {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
           <div className="text-center py-8 text-yellow-600">
             <User className="h-12 w-12 mx-auto mb-4" />
-            <p className="text-lg font-medium">Please log in as personnel to view appointments</p>
+            <p className="text-lg font-medium">
+              {t('pleaseLoginAsPersonnel', 'Please log in as personnel to view appointments')}
+            </p>
           </div>
         </div>
       </div>
@@ -233,7 +230,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
       <div className="space-y-6">
         <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
           <div className="text-center py-8 text-red-600">
-            Error loading appointments: {(error as Error).message}
+            {t('errorLoadingAppointments', 'Error loading appointments:')} {(error as Error).message}
           </div>
         </div>
       </div>
@@ -243,10 +240,13 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-[1px] md:p-4 md:border-[#000000]/20 md:border w-full">
-
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Client Appointments</h1>
-          <p className="text-gray-600">Manage client scheduled appointments</p>
+          <h1 className="text-2xl font-bold text-gray-800">
+            {t('clientAppointments', 'Client Appointments')}
+          </h1>
+          <p className="text-gray-600">
+            {t('manageClientScheduledAppointments', 'Manage client scheduled appointments')}
+          </p>
         </div>
         <div className="flex lg:flex-row gap-4 flex-col justify-start md:justify-between mb-3">
           <div className="flex border-[#000000]/50 border items-center rounded-[10px] md:w-[531px] h-[34px]">
@@ -254,7 +254,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               type="text"
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Search appointments..."
+              placeholder={t('searchAppointmentsPlaceholder', 'Search appointments...')}
               className="outline-none placeholder:text-[16px] px-2 w-full"
             />
           </div>
@@ -264,7 +264,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
             >
               <Filter size={18} />
-              <span>Filter</span>
+              <span>{t('filterButton', 'Filter')}</span>
               {selectedFilter !== 'all' && (
                 <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[selectedFilter as keyof typeof statusColors]}`}>
                   {selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)}
@@ -276,7 +276,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                 <div className="p-2">
                   <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2 px-2">
-                    Filter
+                    {t('filterLabel', 'Filter')}
                   </div>
                   <button
                     onClick={() => {
@@ -288,7 +288,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                         : 'hover:bg-gray-50 text-gray-700'
                       }`}
                   >
-                    <span>All Appointments</span>
+                    <span>{t('allAppointments', 'All Appointments')}</span>
                     {selectedFilter === 'all' && (
                       <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
                     )}
@@ -303,7 +303,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                         : 'hover:bg-gray-50 text-gray-700'
                       }`}
                   >
-                    <span>Booked</span>
+                    <span>{t('statusBooked', 'Booked')}</span>
                     {selectedFilter === 'booked' && (
                       <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                     )}
@@ -318,7 +318,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                         : 'hover:bg-gray-50 text-gray-700'
                       }`}
                   >
-                    <span>Completed</span>
+                    <span>{t('statusCompleted', 'Completed')}</span>
                     {selectedFilter === 'completed' && (
                       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                     )}
@@ -333,7 +333,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                         : 'hover:bg-gray-50 text-gray-700'
                       }`}
                   >
-                    <span>Rejected</span>
+                    <span>{t('statusRejected', 'Rejected')}</span>
                     {selectedFilter === 'rejected' && (
                       <div className="w-2 h-2 bg-red-600 rounded-full"></div>
                     )}
@@ -348,7 +348,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                         : 'hover:bg-gray-50 text-gray-700'
                       }`}
                   >
-                    <span>Accepted</span>
+                    <span>{t('statusAccepted', 'Accepted')}</span>
                     {selectedFilter === 'accepted' && (
                       <div className="w-2 h-2 bg-green-600 rounded-full"></div>
                     )}
@@ -364,22 +364,22 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
             <thead>
               <tr className="bg-white border-b-[#00000080]/50 border-b">
                 <th className="text-center py-3 px-4 text-lg font-medium whitespace-nowrap">
-                  Client
+                  {t('clientColumn', 'Client')}
                 </th>
                 <th className="text-center px-4 py-3 text-lg font-medium whitespace-nowrap">
-                  Contact
+                  {t('contactColumn', 'Contact')}
                 </th>
                 <th className="text-center px-4 py-3 text-lg font-medium whitespace-nowrap">
-                  Services
+                  {t('servicesColumn', 'Services')}
                 </th>
                 <th className="text-center px-4 py-3 text-lg font-medium whitespace-nowrap">
-                  Date & Time
+                  {t('dateAndTimeColumn', 'Date & Time')}
                 </th>
                 <th className="text-center px-4 py-3 text-lg font-medium">
-                  Status
+                  {t('statusColumn', 'Status')}
                 </th>
                 <th className="text-center px-4 py-3 text-lg font-medium">
-                  Actions
+                  {t('actionsColumn', 'Actions')}
                 </th>
               </tr>
             </thead>
@@ -388,7 +388,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                 <tr>
                   <td colSpan={6}>
                     <div className="w-full min-h-[60vh] flex items-center justify-center text-center">
-                      Loading appointments...
+                      {t('loadingAppointments', 'Loading appointments...')}
                     </div>
                   </td>
                 </tr>
@@ -396,8 +396,8 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                 <tr>
                   <td colSpan={6} className="text-center py-4">
                     {appointments.length === 0
-                      ? "No appointments found."
-                      : `No ${selectedFilter} appointments found.`}
+                      ? t('noAppointmentsFound', 'No appointments found.')
+                      : t('noFilteredAppointmentsFound', `No ${selectedFilter} appointments found.`)}
                   </td>
                 </tr>
               ) : (
@@ -419,7 +419,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                           </span>
                           {appointment.client.emergency_alert?.status === true && (
                             <span className="text-red-600 text-xs font-semibold mt-0.5">
-                              Emergency
+                              {t('emergencyLabel', 'Emergency')}
                             </span>
                           )}
                         </div>
@@ -465,18 +465,18 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                       <button
                         onClick={() => openModal(appointment)}
                         className="text-blue-600 hover:text-blue-800 transition-colors"
-                        title="View Details"
+                        title={t('viewDetailsTooltip', 'View Details')}
                       >
                         <Eye size={16} />
                       </button>
                       <button
                         onClick={() => openAssessmentModal(appointment)}
                         className="text-green-600 hover:text-green-800 transition-colors relative group"
-                        title="Assessment Forms"
+                        title={t('assessmentFormsTooltip', 'Assessment Forms')}
                       >
                         <FileText size={16} />
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                          Assessment Forms
+                          {t('assessmentFormsTooltip', 'Assessment Forms')}
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                         </div>
                       </button>
@@ -486,11 +486,11 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                           `${appointment.client.firstName} ${appointment.client.lastName}`
                         )}
                         className="text-purple-600 hover:text-purple-800 transition-colors relative group"
-                        title="Client Documents"
+                        title={t('clientDocumentsTooltip', 'Client Documents')}
                       >
                         <Paperclip size={16} />
                         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap z-10">
-                          Client Documents
+                          {t('clientDocumentsTooltip', 'Client Documents')}
                           <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                         </div>
                       </button>
@@ -517,14 +517,15 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
         )}
       </div>
 
-      {/* Modals */}
       <ModalComponent isOpen={isModalOpen} onClose={closeModal}>
         {selectedAppointment && <PersonnelAppointmentDetails appointment={selectedAppointment} />}
       </ModalComponent>
 
       <ModalComponent isOpen={isAssessmentModalOpen} onClose={closeAssessmentModal}>
         <div className="w-full max-w-md p-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Assessment Forms</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            {t('assessmentFormsTitle', 'Assessment Forms')}
+          </h2>
 
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {assessmentForms.map((form: AssessmentFormType) => (
@@ -546,12 +547,9 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="text-sm text-gray-700">
-                    <strong>Selected Client:</strong> {selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}
+                    <strong>{t('selectedClientLabel', 'Selected Client:')}</strong> {selectedAppointmentForAssessment.client.firstName} {selectedAppointmentForAssessment.client.lastName}
                   </p>
                 </div>
-                {/* {selectedAppointmentForAssessment.client.emergency_alert?.status ===false && <div>
-                  
-                </div>} */}
                 <EmergencyAlertButton
                   clientId={selectedAppointmentForAssessment?.client?._id || ''}
                 />
@@ -559,30 +557,35 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
 
               <div className="grid grid-cols-1 gap-1">
                 <p className="text-sm text-gray-600">
-                  <strong>Client ID:</strong> <span className="font-mono text-xs">{selectedAppointmentForAssessment.client._id}</span>
+                  <strong>{t('clientIdLabel', 'Client ID:')}</strong> <span className="font-mono text-xs">{selectedAppointmentForAssessment.client._id}</span>
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Personnel ID:</strong> <span className="font-mono text-xs">{personnelId}</span>
+                  <strong>{t('personnelIdLabel', 'Personnel ID:')}</strong> <span className="font-mono text-xs">{personnelId}</span>
                 </p>
                 <p className="text-sm text-gray-600">
-                  <strong>Appointment ID:</strong> <span className="font-mono text-xs">{selectedAppointmentForAssessment._id}</span>
+                  <strong>{t('appointmentIdLabel', 'Appointment ID:')}</strong> <span className="font-mono text-xs">{selectedAppointmentForAssessment._id}</span>
                 </p>
                 <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-300">
-                  <strong>Appointment:</strong> {formatDisplayDate(selectedAppointmentForAssessment.date)} at {formatTime(selectedAppointmentForAssessment.startTime)}
+                  <strong>{t('appointmentLabel', 'Appointment:')}</strong> {formatDisplayDate(selectedAppointmentForAssessment.date)} at {formatTime(selectedAppointmentForAssessment.startTime)}
                 </p>
               </div>
             </div>
           )}
         </div>
       </ModalComponent>
+      
       <ModalComponent isOpen={isRejectionModalOpen} onClose={() => setIsRejectionModalOpen(false)}>
         <div className="w-full max-w-md p-6">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Reject Appointment</h2>
-          <p className="text-gray-600 mb-6">Please provide a reason for rejecting this appointment.</p>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">
+            {t('rejectAppointmentTitle', 'Reject Appointment')}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {t('provideReasonForRejection', 'Please provide a reason for rejecting this appointment.')}
+          </p>
 
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Reason for Rejection *
+              {t('reasonForRejectionLabel', 'Reason for Rejection *')}
             </label>
             <textarea
               value={rejectionReason}
@@ -590,7 +593,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                 setRejectionReason(e.target.value);
                 if (rejectionError) setRejectionError('');
               }}
-              placeholder="Enter the reason for rejecting this appointment..."
+              placeholder={t('enterReasonForRejectionPlaceholder', 'Enter the reason for rejecting this appointment...')}
               className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               required
             />
@@ -608,7 +611,7 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
               }}
               className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
             >
-              Cancel
+              {t('cancelButton', 'Cancel')}
             </button>
             <button
               onClick={confirmRejection}
@@ -618,13 +621,12 @@ export const PersonnelAppointmentsPage: React.FC<PersonnelAppointmentsPageProps>
                 : 'bg-red-400 cursor-not-allowed'
                 }`}
             >
-              Confirm Rejection
+              {t('confirmRejectionButton', 'Confirm Rejection')}
             </button>
           </div>
         </div>
       </ModalComponent>
 
-      {/* Client Documents Modal */}
       {selectedClientForDocuments && (
         <ClientDocumentsModal
           clientId={selectedClientForDocuments.id}

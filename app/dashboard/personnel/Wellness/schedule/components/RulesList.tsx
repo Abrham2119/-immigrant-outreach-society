@@ -1,5 +1,5 @@
 "use client";
-import { useTranslation } from '@/components/providers/translation.provider'; // Added import
+import { useTranslation } from '@/components/providers/translation.provider';
 import { Rule } from "@/domain/entities/appointment";
 import { useRuleManagement } from "@/domain/use-cases/rule";
 import React from "react";
@@ -11,25 +11,25 @@ interface RulesListProps {
 
 const RulesList: React.FC<RulesListProps> = ({ rules }) => {
     const { deleteRuleMutation } = useRuleManagement();
-    const { t } = useTranslation(); // Added hook
+    const { t } = useTranslation();
 
     const daysOfWeek = [
-        { id: 0, label: "Sun", name: "Sunday" },
-        { id: 1, label: "Mon", name: "Monday" },
-        { id: 2, label: "Tue", name: "Tuesday" },
-        { id: 3, label: "Wed", name: "Wednesday" },
-        { id: 4, label: "Thu", name: "Thursday" },
-        { id: 5, label: "Fri", name: "Friday" },
-        { id: 6, label: "Sat", name: "Saturday" },
+        { id: 0, label: t('sunAbbreviation', "Sun"), name: t('sunday', "Sunday") },
+        { id: 1, label: t('monAbbreviation', "Mon"), name: t('monday', "Monday") },
+        { id: 2, label: t('tueAbbreviation', "Tue"), name: t('tuesday', "Tuesday") },
+        { id: 3, label: t('wedAbbreviation', "Wed"), name: t('wednesday', "Wednesday") },
+        { id: 4, label: t('thuAbbreviation', "Thu"), name: t('thursday', "Thursday") },
+        { id: 5, label: t('friAbbreviation', "Fri"), name: t('friday', "Friday") },
+        { id: 6, label: t('satAbbreviation', "Sat"), name: t('saturday', "Saturday") },
     ];
 
     const formatTime = (time: string) => {
-        if (!time) return "N/A";
+        if (!time) return t('notAvailableAbbreviation', "N/A");
         
         // Convert 24-hour format to 12-hour format
         const [hours, minutes] = time.split(':');
         const hour = parseInt(hours);
-        const period = hour >= 12 ? 'PM' : 'AM';
+        const period = hour >= 12 ? t('pm', "PM") : t('am', "AM");
         const displayHour = hour % 12 || 12;
         
         return `${displayHour}:${minutes} ${period}`;
@@ -87,7 +87,7 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
                     {t('yourAvailabilityRules', "Your Availability Rules")}
                 </h3>
                 <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                    {rules.length} {t('rule', "rule")}{rules.length !== 1 ? 's' : ''}
+                    {rules.length} {t('rule', "rule")}{rules.length !== 1 ? t('pluralSuffix', "s") : ''}
                 </span>
             </div>
 
@@ -104,7 +104,7 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
                                         {getDayLabels(rule.weekdays)}
                                     </span>
                                     <span className="text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">
-                                        {rule.weekdays.length} {t('day', "day")}{rule.weekdays.length !== 1 ? 's' : ''}
+                                        {rule.weekdays.length} {t('day', "day")}{rule.weekdays.length !== 1 ? t('pluralSuffix', "s") : ''}
                                     </span>
                                 </div>
                                 
@@ -118,18 +118,6 @@ const RulesList: React.FC<RulesListProps> = ({ rules }) => {
                             </div>
                             
                             <div className="flex space-x-2 ml-4">
-                                {/* Edit Button */}
-                                {/* <Link
-                                    href={`/dashboard/personnel/Wellness/schedule/edit/${rule._id}`}
-                                    className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded transition-colors"
-                                    title="Edit rule"
-                                >
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                </Link> */}
-                                
-                                {/* Delete Button */}
                                 <button
                                     onClick={() => handleDeleteRule(rule._id!)}
                                     disabled={deleteRuleMutation.isPending}

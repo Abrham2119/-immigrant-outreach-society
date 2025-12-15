@@ -1,14 +1,15 @@
 "use client";
-// app/availability/edit/[id]/page.tsx
 import React from 'react';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import EditRuleForm from '../../components/EditRuleForm';
+import { useTranslation } from '@/components/providers/translation.provider';
 
 const EditRulePage = () => {
   const { data: session, status } = useSession();
   const params = useParams();
   const ruleId = params.id as string;
+  const { t } = useTranslation();
 
   if (status === 'loading') {
     return (
@@ -22,8 +23,12 @@ const EditRulePage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Authentication Required</h1>
-          <p className="text-gray-600">Please log in to edit availability rules.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            {t('authentication_required', 'Authentication Required')}
+          </h1>
+          <p className="text-gray-600">
+            {t('login_to_edit_availability_rules', 'Please log in to edit availability rules.')}
+          </p>
         </div>
       </div>
     );
