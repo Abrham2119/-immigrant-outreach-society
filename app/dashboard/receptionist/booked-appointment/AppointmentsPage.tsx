@@ -242,6 +242,11 @@ export default function AppointmentsPage() {
                         </p>
                         <p className="text-sm text-gray-600">{appointment.client.email}</p>
                         <p className="text-xs text-gray-500">{appointment.client.mobile}</p>
+                         {appointment.client.emergency_alert?.status === true && (
+                          <span className="text-red-600 text-xs font-semibold mt-0.5">
+                            Emergency
+                          </span>
+                        )}
                       </div>
                     </td>
 
